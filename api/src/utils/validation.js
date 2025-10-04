@@ -1,0 +1,1 @@
+/*Validation des données d'entrée*/

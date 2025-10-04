@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.home-container {  
+  display: flex;  
+  min-height: 100vh;  
+}  
+  
+.home-content {  
+  margin-left: 250px; /* Largeur du side menu */  
+  padding: 20px;  
+  flex: 1;  
+}  
+  
+@media (max-width: 768px) {  
+  .home-content {  
+    margin-left: 0;  
+  }  
+}

@@ -1,0 +1,401 @@
+.stock-line-layout {  
+  min-height: 100vh;  
+  background-color: #f8fafc;  
+}  
+  
+.stock-line-wrapper {  
+  max-width: 1200px;  
+  margin: 0 auto;  
+  padding: 20px;  
+}  
+  
+.stock-line-container {  
+  background: white;  
+  border-radius: 12px;  
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);  
+  overflow: hidden;  
+}  
+  
+.stock-line-content {  
+  padding: 24px;  
+}  
+  
+.page-header {  
+  margin-bottom: 32px;  
+}  
+  
+.back-button {  
+  display: flex;  
+  align-items: center;  
+  gap: 8px;  
+  background: #f3f4f6;  
+  color: #6b7280;  
+  border: none;  
+  padding: 8px 16px;  
+  border-radius: 8px;  
+  font-size: 14px;  
+  cursor: pointer;  
+  transition: all 0.2s;  
+  margin-bottom: 16px;  
+}  
+  
+.back-button:hover {  
+  background: #e5e7eb;  
+  color: #374151;  
+}  
+  
+.header-content h1 {  
+  display: flex;  
+  align-items: center;  
+  gap: 12px;  
+  font-size: 28px;  
+  font-weight: 700;  
+  color: #1f2937;  
+  margin: 0 0 16px 0;  
+}  
+  
+.inventory-info {  
+  background: #f9fafb;  
+  padding: 16px;  
+  border-radius: 8px;  
+  border: 1px solid #e5e7eb;  
+}  
+  
+.inventory-info p {  
+  margin: 0 0 8px 0;  
+  font-size: 14px;  
+  color: #374151;  
+}  
+  
+.inventory-info p:last-child {  
+  margin-bottom: 0;  
+}  
+  
+.action-section {  
+  margin-bottom: 24px;  
+}  
+  
+.add-button {  
+  display: flex;  
+  align-items: center;  
+  gap: 8px;  
+  background: #10b981;  
+  color: white;  
+  border: none;  
+  padding: 12px 24px;  
+  border-radius: 8px;  
+  font-weight: 500;  
+  cursor: pointer;  
+  transition: background-color 0.2s;  
+}  
+  
+.add-button:hover {  
+  background: #059669;  
+}  
+  
+.filter-section {  
+  margin-bottom: 24px;  
+}  
+  
+.search-container {  
+  position: relative;  
+  max-width: 400px;  
+}  
+  
+.search-icon {  
+  position: absolute;  
+  left: 12px;  
+  top: 50%;  
+  transform: translateY(-50%);  
+  color: #9ca3af;  
+  width: 20px;  
+  height: 20px;  
+}  
+  
+.search-input {  
+  width: 100%;  
+  padding: 12px 12px 12px 44px;  
+  border: 1px solid #d1d5db;  
+  border-radius: 8px;  
+  font-size: 14px;  
+}  
+  
+.table-card {  
+  border: 1px solid #e5e7eb;  
+  border-radius: 8px;  
+  overflow: hidden;  
+}  
+  
+.table-header {  
+  background: #f9fafb;  
+  padding: 16px 20px;  
+  border-bottom: 1px solid #e5e7eb;  
+  display: flex;  
+  justify-content: space-between;  
+  align-items: center;  
+}  
+  
+.table-title {  
+  font-size: 18px;  
+  font-weight: 600;  
+  color: #1f2937;  
+  margin: 0;  
+}  
+  
+.table-count {  
+  font-size: 14px;  
+  color: #6b7280;  
+  background: #e5e7eb;  
+  padding: 4px 12px;  
+  border-radius: 20px;  
+}  
+  
+.stock-lines-table {  
+  width: 100%;  
+  border-collapse: collapse;  
+}  
+  
+.stock-lines-table th {  
+  background: #f9fafb;  
+  padding: 12px 16px;  
+  text-align: left;  
+  font-weight: 600;  
+  color: #374151;  
+  border-bottom: 1px solid #e5e7eb;  
+}  
+  
+.stock-lines-table td {  
+  padding: 12px 16px;  
+  border-bottom: 1px solid #f3f4f6;  
+}  
+  
+.quantity-cell {  
+  text-align: center;  
+  font-weight: 600;  
+  color: #059669;  
+}  
+  
+.action-buttons {  
+  display: flex;  
+  gap: 8px;  
+  justify-content: center;  
+}  
+  
+.edit-button, .delete-button {  
+  display: inline-flex;  
+  align-items: center;  
+  justify-content: center;  
+  width: 32px;  
+  height: 32px;  
+  border: none;  
+  border-radius: 6px;  
+  cursor: pointer;  
+  transition: all 0.2s ease;  
+}  
+  
+.edit-button {  
+  background-color: #f3f4f6;  
+  color: #6b7280;  
+}  
+  
+.edit-button:hover {  
+  background-color: #3b82f6;  
+  color: white;  
+}  
+  
+.delete-button {  
+  background-color: #f3f4f6;  
+  color: #6b7280;  
+}  
+  
+.delete-button:hover {  
+  background-color: #ef4444;  
+  color: white;  
+}  
+  
+.action-icon {  
+  width: 16px;  
+  height: 16px;  
+}  
+  
+/* Modal Styles - Réutilise les mêmes styles que StockDepotManagement */  
+.modal-overlay {  
+  position: fixed;  
+  top: 0;  
+  left: 0;  
+  right: 0;  
+  bottom: 0;  
+  background-color: rgba(0, 0, 0, 0.5);  
+  display: flex;  
+  align-items: center;  
+  justify-content: center;  
+  z-index: 1000;  
+}  
+  
+.modal-content {  
+  background: white;  
+  border-radius: 12px;  
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);  
+  width: 90%;  
+  max-width: 500px;  
+  max-height: 90vh;  
+  overflow-y: auto;  
+}  
+  
+.modal-header {  
+  display: flex;  
+  justify-content: space-between;  
+  align-items: center;  
+  padding: 20px 24px;  
+  border-bottom: 1px solid #e5e7eb;  
+}  
+  
+.modal-title {  
+  font-size: 18px;  
+  font-weight: 600;  
+  color: #1f2937;  
+  margin: 0;  
+}  
+  
+.modal-close {  
+  background: none;  
+  border: none;  
+  cursor: pointer;  
+  padding: 4px;  
+  border-radius: 4px;  
+  transition: background-color 0.2s;  
+}  
+  
+.modal-close:hover {  
+  background-color: #f3f4f6;  
+}  
+  
+.close-icon {  
+  width: 20px;  
+  height: 20px;  
+  color: #6b7280;  
+}  
+  
+.modal-form {  
+  padding: 24px;  
+}  
+  
+.form-group {  
+  margin-bottom: 20px;  
+}  
+  
+.form-label {  
+  display: block;  
+  font-size: 14px;  
+  font-weight: 500;  
+  color: #374151;  
+  margin-bottom: 6px;  
+}  
+  
+.form-select, .form-input {  
+  width: 100%;  
+  padding: 12px 16px;  
+  border: 1px solid #d1d5db;  
+  border-radius: 8px;  
+  font-size: 14px;  
+  transition: border-color 0.2s;  
+}  
+  
+.form-select:focus, .form-input:focus {  
+  outline: none;  
+  border-color: #10b981;  
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);  
+}  
+  
+.form-actions {  
+  display: flex;  
+  gap: 12px;  
+  justify-content: flex-end;  
+  margin-top: 24px;  
+}  
+  
+.cancel-button, .submit-button {  
+  padding: 12px 24px;  
+  border-radius: 8px;  
+  font-size: 14px;  
+  font-weight: 500;  
+  cursor: pointer;  
+  transition: all 0.2s;  
+}  
+  
+.cancel-button {  
+  background: white;  
+  color: #6b7280;  
+  border: 1px solid #d1d5db;  
+}  
+  
+.cancel-button:hover {  
+  background: #f9fafb;  
+}  
+  
+.submit-button {  
+  background: #10b981;  
+  color: white;  
+  border: none;  
+}  
+  
+.submit-button:hover {  
+  background: #059669;  
+}  
+  
+.text-center {  
+  text-align: center;  
+  color: white;  
+  font-style: italic;  
+}  
+  
+/* Responsive */  
+@media (max-width: 768px) {  
+  .stock-line-wrapper {  
+    padding: 16px;  
+  }  
+    
+  .inventory-info {  
+    padding: 12px;  
+  }  
+    
+  .stock-lines-table {  
+    font-size: 12px;  
+  }  
+    
+  .stock-lines-table th,  
+  .stock-lines-table td {  
+    padding: 8px 12px;  
+  }  
+}
+
+
+.stock-line-wrapper {  
+  margin-left: 256px;  
+  margin-top: 70px;  
+  min-height: calc(100vh - 70px);  
+  background-color: #f3f4f6;  
+  padding: 2rem;  
+  transition: margin-left 0.3s ease, width 0.3s ease;  
+  width: calc(100vw - 256px);  
+}  
+  
+/* Quand la sidebar est collapsed */  
+body.sidebar-collapsed .stock-line-wrapper {  
+  margin-left: 64px;  
+  width: calc(100vw - 64px);  
+}  
+  
+/* Responsive Design pour sidebar */  
+@media (max-width: 768px) {  
+  .stock-line-wrapper {  
+    margin-left: 0 !important;  
+    width: 100vw !important;  
+    padding: 1rem;  
+  }  
+    
+  body.sidebar-collapsed .stock-line-wrapper {  
+    margin-left: 0 !important;  
+    width: 100vw !important;  
+  }  
+}

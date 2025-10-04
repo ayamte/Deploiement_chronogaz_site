@@ -1,0 +1,64 @@
+services:          
+  mongodb:          
+    image: mongo:latest          
+    container_name: chronogaz_mongo_db       
+    restart: unless-stopped          
+    ports:          
+      - "27018:27017"          
+    volumes:          
+      - mongo_data:/data/db          
+      - ./mongo-init:/docker-entrypoint-initdb.d:ro          
+    environment:          
+      MONGO_INITDB_ROOT_USERNAME: root          
+      MONGO_INITDB_ROOT_PASSWORD: chronogaz123          
+      MONGO_INITDB_DATABASE: chronogaz_db      
+    healthcheck:          
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]          
+      interval: 30s          
+      timeout: 10s          
+      retries: 3          
+    networks:      
+      - chronogaz-network      
+          
+  app:          
+    build: ./api          
+    container_name: chronogaz_app   
+    restart: unless-stopped          
+    ports:          
+      - "5000:5000"          
+    env_file:      
+      - ./api/.env      
+    depends_on:          
+      mongodb:          
+        condition: service_healthy          
+    volumes:          
+      - ./api:/app          
+      - /app/node_modules      
+    networks:      
+      - chronogaz-network      
+        
+  frontend:        
+    build: ./client        
+    container_name: chronogaz_frontend  
+    restart: unless-stopped        
+    ports:        
+      - "3000:3000"        
+    environment:        
+      - REACT_APP_API_URL=http://localhost:5000
+      - REACT_APP_SOCKET_URL=http://localhost:5000 
+      - REACT_APP_GRAPHHOPPER_KEY=6fe731b8-5611-4fb5-afa2-da5059ae2564 
+    volumes:        
+      - ./client:/app        
+      - /app/node_modules        
+    depends_on:        
+      - app      
+    networks:      
+      - chronogaz-network      
+          
+volumes:          
+  mongo_data:          
+    driver: local          
+          
+networks:          
+  chronogaz-network:      
+    driver: bridge

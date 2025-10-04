@@ -1,0 +1,307 @@
+/* Variables de couleurs ChronoGaz */  
+:root {  
+  --primary-blue: #1F55A3;  
+  --secondary-blue: #3498db;  
+  --dark-gray: #34495e;  
+  --light-gray: #ecf0f1;  
+  --white: #ffffff;  
+  --red: #e74c3c;  
+  --dark-red: #c0392b;  
+  --light-blue: #164a91;  
+  --green: #059669;  
+  --orange: #ea580c;  
+  --purple: #8b5cf6;  
+  --border-color: #e5e7eb;  
+  --text-light: #6b7280;  
+}  
+  
+/* Container principal */  
+.complete-profile-container {  
+  min-height: 100vh;  
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary-light) 100%);    
+  display: flex;  
+  align-items: center;  
+  justify-content: center;  
+  padding: 2rem;  
+}  
+  
+.complete-profile-content {  
+  background: var(--white);  
+  border-radius: 16px;  
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);  
+  padding: 3rem;  
+  width: 100%;  
+  max-width: 600px;  
+}  
+  
+/* Header */  
+.complete-profile-header {  
+  text-align: center;  
+  margin-bottom: 2rem;  
+}  
+  
+.complete-profile-title {  
+  font-size: 2rem;  
+  font-weight: 700;  
+  color: var(--dark-gray);  
+  margin-bottom: 0.5rem;  
+}  
+  
+.complete-profile-subtitle {  
+  color: var(--text-light);  
+  font-size: 1rem;  
+  margin-bottom: 2rem;  
+}  
+  
+/* Sélection du type d'utilisateur */  
+.user-type-selection {  
+  display: grid;  
+  grid-template-columns: 1fr 1fr;  
+  gap: 1rem;  
+  margin-bottom: 2rem;  
+}  
+  
+.user-type-button {  
+  display: flex;  
+  flex-direction: column;  
+  align-items: center;  
+  padding: 1.5rem;  
+  border: 2px solid var(--border-color);  
+  border-radius: 12px;  
+  background: var(--white);  
+  cursor: pointer;  
+  transition: all 0.3s ease;  
+  text-align: center;  
+}  
+  
+.user-type-button:hover {  
+  border-color: var(--primary-blue);  
+  background: var(--primary-blue);  
+  color: var(--white);  
+}  
+  
+.user-type-button:hover .user-type-icon {  
+  color: var(--white);  
+}  
+  
+.user-type-button.active {  
+  border-color: var(--primary-blue);  
+  background: var(--primary-blue);  
+  color: var(--white);  
+}  
+  
+.user-type-button.active .user-type-icon {  
+  color: var(--white);  
+}  
+  
+.user-type-icon {  
+  width: 2.5rem;  
+  height: 2.5rem;  
+  margin-bottom: 0.5rem;  
+}  
+  
+.user-type-label {  
+  font-weight: 600;  
+  font-size: 1rem;  
+}  
+  
+/* Formulaire */  
+.complete-profile-form {  
+  display: flex;  
+  flex-direction: column;  
+  gap: 1.5rem;  
+}  
+  
+.form-row {  
+  display: grid;  
+  grid-template-columns: 1fr 1fr;  
+  gap: 1rem;  
+}  
+  
+.form-group {  
+  display: flex;  
+  flex-direction: column;  
+}  
+  
+.form-label {  
+  font-weight: 600;  
+  color: var(--dark-gray);  
+  margin-bottom: 0.5rem;  
+  font-size: 0.875rem;  
+}  
+  
+.form-input {  
+  padding: 0.75rem;  
+  border: 1px solid var(--border-color);  
+  border-radius: 8px;  
+  font-size: 1rem;  
+  transition: border-color 0.3s ease;  
+}  
+  
+.form-input:focus {  
+  outline: none;  
+  border-color: var(--primary-blue);  
+  box-shadow: 0 0 0 3px rgba(31, 85, 163, 0.1);  
+}  
+  
+.form-select {  
+  padding: 0.75rem;  
+  border: 1px solid var(--border-color);  
+  border-radius: 8px;  
+  font-size: 1rem;  
+  background: var(--white);  
+  cursor: pointer;  
+  transition: border-color 0.3s ease;  
+}  
+  
+.form-select:focus {  
+  outline: none;  
+  border-color: var(--primary-blue);  
+  box-shadow: 0 0 0 3px rgba(31, 85, 163, 0.1);  
+}  
+  
+/* Boutons d'action */  
+.form-actions {  
+  display: flex;  
+  gap: 1rem;  
+  margin-top: 2rem;  
+}  
+  
+.btn-primary {  
+  flex: 1;  
+  padding: 0.875rem 1.5rem;  
+  background: var(--primary-blue);  
+  color: var(--white);  
+  border: none;  
+  border-radius: 8px;  
+  font-size: 1rem;  
+  font-weight: 600;  
+  cursor: pointer;  
+  transition: all 0.3s ease;  
+}  
+  
+.btn-primary:hover:not(:disabled) {  
+  background: var(--light-blue);  
+  transform: translateY(-1px);  
+}  
+  
+.btn-primary:disabled {  
+  opacity: 0.6;  
+  cursor: not-allowed;  
+}  
+  
+.btn-secondary {  
+  flex: 1;  
+  padding: 0.875rem 1.5rem;  
+  background: transparent;  
+  color: var(--dark-gray);  
+  border: 1px solid var(--border-color);  
+  border-radius: 8px;  
+  font-size: 1rem;  
+  font-weight: 600;  
+  cursor: pointer;  
+  transition: all 0.3s ease;  
+}  
+  
+.btn-secondary:hover {  
+  background: var(--light-gray);  
+}  
+  
+/* Loading state */  
+.btn-loading {  
+  position: relative;  
+  color: transparent;  
+}  
+  
+.btn-loading::after {  
+  content: '';  
+  position: absolute;  
+  top: 50%;  
+  left: 50%;  
+  transform: translate(-50%, -50%);  
+  width: 1.25rem;  
+  height: 1.25rem;  
+  border: 2px solid transparent;  
+  border-top: 2px solid currentColor;  
+  border-radius: 50%;  
+  animation: spin 1s linear infinite;  
+}  
+  
+@keyframes spin {  
+  to {  
+    transform: translate(-50%, -50%) rotate(360deg);  
+  }  
+}  
+  
+/* Messages d'erreur */  
+.error-message {  
+  background: #fef2f2;  
+  border: 1px solid #fecaca;  
+  color: var(--red);  
+  padding: 0.75rem;  
+  border-radius: 8px;  
+  font-size: 0.875rem;  
+  margin-bottom: 1rem;  
+}  
+  
+/* AuthCallback styles */  
+.auth-callback-container {  
+  min-height: 100vh;  
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);  
+  display: flex;  
+  align-items: center;  
+  justify-content: center;  
+  padding: 2rem;  
+}  
+  
+.auth-callback-content {  
+  background: var(--white);  
+  border-radius: 16px;  
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);  
+  padding: 3rem;  
+  text-align: center;  
+  max-width: 400px;  
+  width: 100%;  
+}  
+  
+.loading-spinner {  
+  width: 3rem;  
+  height: 3rem;  
+  border: 4px solid var(--border-color);  
+  border-top: 4px solid var(--primary-blue);  
+  border-radius: 50%;  
+  animation: spin 1s linear infinite;  
+  margin: 0 auto 1.5rem;  
+}  
+  
+.auth-callback-content h2 {  
+  color: var(--dark-gray);  
+  margin-bottom: 0.5rem;  
+  font-size: 1.5rem;  
+  font-weight: 600;  
+}  
+  
+.auth-callback-content p {  
+  color: var(--text-light);  
+  font-size: 1rem;  
+}  
+  
+/* Responsive */  
+@media (max-width: 768px) {  
+  .complete-profile-content {  
+    padding: 2rem;  
+    margin: 1rem;  
+  }  
+    
+  .user-type-selection {  
+    grid-template-columns: 1fr;  
+  }  
+    
+  .form-row {  
+    grid-template-columns: 1fr;  
+  }  
+    
+  .form-actions {  
+    flex-direction: column;  
+  }  
+}

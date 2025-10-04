@@ -1,0 +1,850 @@
+/* Variables de couleurs ChronoGaz */    
+:root {    
+  --primary-blue: #1F55A3;    
+  --secondary-blue: #3498db;    
+  --dark-gray: #34495e;    
+  --light-gray: #ecf0f1;    
+  --white: #ffffff;    
+  --red: #e74c3c;    
+  --dark-red: #c0392b;    
+  --light-blue: #164a91;    
+  --green: #059669;    
+  --orange: #ea580c;    
+  --purple: #8b5cf6;    
+}    
+    
+.chauffeur-management-layout {    
+  display: flex;    
+  height: 100vh;    
+}    
+    
+.chauffeur-management-wrapper {    
+  margin-left: 256px;    
+  margin-top: 70px;    
+  min-height: calc(100vh - 70px);    
+  background-color: #f8f9fa;    
+  padding: 24px;    
+  transition: margin-left 0.3s ease, width 0.3s ease;    
+  width: calc(100vw - 256px);    
+}    
+    
+/* Quand le body a la classe sidebar-collapsed */    
+body.sidebar-collapsed .chauffeur-management-wrapper {    
+  margin-left: 64px;    
+  width: calc(100vw - 64px);    
+}    
+    
+.chauffeur-management-container {    
+  width: 100%;    
+  max-width: none;    
+  background-color: #f9fafb;    
+  padding: 1.5rem;    
+}    
+    
+.chauffeur-management-content {    
+  width: 100%;    
+  max-width: 80rem;    
+  margin: 0 auto;    
+  display: flex;    
+  flex-direction: column;    
+  gap: 1.5rem;    
+}    
+    
+/* Header Styles */    
+.page-header {    
+  margin-bottom: 2rem;    
+}    
+    
+.page-title {    
+  font-size: 1.875rem;    
+  font-weight: 700;    
+  color: #111827;    
+  margin: 0;    
+}    
+    
+.page-subtitle {    
+  color: #6b7280;    
+  margin-top: 0.5rem;    
+}    
+    
+/* Stats Grid */    
+.stats-grid {    
+  display: grid;    
+  grid-template-columns: repeat(1, 1fr);    
+  gap: 1.5rem;    
+  margin-bottom: 2rem;    
+}    
+   
+/* Stat Cards avec gradient */    
+.stat-card {    
+  position: relative;    
+  overflow: visible;    
+  border-radius: 12px;    
+  padding: 24px;    
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);    
+  border: 1px solid #e5e7eb;    
+  transition: all 0.2s ease;    
+}    
+    
+.stat-card.gradient-card {    
+  background: linear-gradient(135deg, #4DAEBD 0%, #1F55A3 100%);    
+  color: white;    
+  border: none;    
+  box-shadow: 0 4px 15px rgba(77, 174, 189, 0.3);    
+}    
+    
+.stat-card:hover {    
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);    
+  transform: translateY(-2px);    
+}    
+    
+.stat-card.gradient-card:hover {    
+  box-shadow: 0 8px 25px rgba(77, 174, 189, 0.4);    
+}    
+    
+.stat-card-header {    
+  display: flex;    
+  flex-direction: row;    
+  align-items: center;    
+  justify-content: space-between;    
+  padding-bottom: 0.5rem;    
+}    
+    
+.stat-content {    
+  text-align: center;    
+  padding-right: 0;    
+  display: flex;    
+  flex-direction: column;    
+  align-items: center;    
+  justify-content: center;    
+  flex: 1;    
+}    
+    
+.stat-label {    
+  font-size: 1rem;    
+  font-weight: 600;    
+  color: #6b7280;    
+  margin: 0 0 0.5rem 0;    
+}    
+    
+.stat-card.gradient-card .stat-label {    
+  color: white;    
+  opacity: 0.9;    
+}    
+    
+.stat-value {    
+  font-size: 2.5rem;    
+  font-weight: 800;    
+  color: #111827;    
+  margin: 0.75rem 0;    
+}    
+    
+.stat-card.gradient-card .stat-value {    
+  color: white;    
+  font-weight: 800;    
+}    
+    
+.stat-description {    
+  font-size: 0.875rem;    
+  color: #6b7280;    
+  text-align: center;    
+  margin-top: 0.5rem;    
+}    
+    
+.stat-card.gradient-card .stat-description {    
+  color: rgba(255, 255, 255, 0.8);    
+}    
+  
+@media (min-width: 768px) {    
+  .stats-grid {    
+    grid-template-columns: repeat(4, 1fr);    
+  }    
+}    
+    
+@media (max-width: 1024px) and (min-width: 768px) {    
+  .stats-grid {    
+    grid-template-columns: repeat(2, 1fr);    
+  }    
+}  
+    
+/* Action Section */    
+.action-section {    
+  display: flex;    
+  justify-content: flex-start;    
+  margin-bottom: 1.5rem;    
+}    
+    
+.add-button {    
+  display: flex;    
+  align-items: center;    
+  gap: 0.5rem;    
+  padding: 12px 24px;    
+  background-color: var(--secondary-blue);    
+  color: var(--white);    
+  border: none;    
+  border-radius: 8px;    
+  font-weight: 500;    
+  cursor: pointer;    
+  transition: background-color 0.2s ease;    
+}    
+    
+.add-button:hover {    
+  background-color: #2980b9;    
+}    
+    
+.button-icon {    
+  height: 1rem;    
+  width: 1rem;    
+}    
+    
+/* Search Section */    
+.search-section {    
+  margin-bottom: 1.5rem;    
+}    
+    
+.search-container {    
+  position: relative;    
+  max-width: 28rem;    
+}    
+    
+.search-icon {    
+  position: absolute;    
+  left: 12px;    
+  top: 50%;    
+  transform: translateY(-50%);    
+  color: #9ca3af;    
+  height: 1rem;    
+  width: 1rem;    
+}    
+    
+.search-input {    
+  width: 100%;    
+  padding: 12px 12px 12px 40px;    
+  border: 1px solid #d1d5db;    
+  border-radius: 8px;    
+  font-size: 0.875rem;    
+  background-color: var(--white);    
+  transition: border-color 0.2s ease;    
+}    
+    
+.search-input:focus {    
+  outline: none;    
+  border-color: var(--primary-blue);    
+  box-shadow: 0 0 0 3px rgba(31, 85, 163, 0.1);    
+}    
+    
+.search-input::placeholder {    
+  color: #9ca3af;    
+}    
+    
+/* Table Card */    
+.table-card {    
+  background-color: var(--white);    
+  border-radius: 12px;    
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);    
+  border: 1px solid #e5e7eb;    
+  overflow: hidden;    
+}    
+    
+.table-header {    
+  padding: 24px 24px 16px 24px;    
+  border-bottom: 1px solid #e5e7eb;    
+}    
+    
+.table-title {    
+  font-size: 1.125rem;    
+  font-weight: 600;    
+  color: #111827;    
+  margin: 0;    
+}    
+    
+.table-content {    
+  padding: 0;    
+}    
+    
+.table-container {    
+  overflow-x: auto;    
+}    
+    
+/* Table Styles */    
+.chauffeurs-table {    
+  width: 100%;    
+  border-collapse: collapse;    
+}    
+    
+.chauffeurs-table thead {    
+  background-color: #f9fafb;    
+}    
+    
+.chauffeurs-table th {    
+  padding: 12px 24px;    
+  text-align: left;    
+  font-size: 0.75rem;    
+  font-weight: 500;    
+  color: #6b7280;    
+  text-transform: uppercase;    
+  letter-spacing: 0.05em;    
+  border-bottom: 1px solid #e5e7eb;    
+}    
+    
+.chauffeurs-table td {    
+  padding: 16px 24px;    
+  border-bottom: 1px solid #e5e7eb;    
+  font-size: 0.875rem;    
+  color: #111827;    
+}    
+    
+.chauffeurs-table tbody tr:hover {    
+  background-color: #f9fafb;    
+}    
+    
+.chauffeurs-table .font-medium {    
+  font-weight: 500;    
+}    
+    
+/* Badge Styles pour les types et statuts */    
+.badge {    
+  display: inline-flex;    
+  align-items: center;    
+  padding: 4px 8px;    
+  border-radius: 6px;    
+  font-size: 0.75rem;    
+  font-weight: 500;    
+  text-transform: capitalize;    
+}    
+    
+.badge-chauffeur {    
+  background-color: #dbeafe;    
+  color: #1e3a8a;    
+  border: 1px solid #bfdbfe;    
+}    
+    
+.badge-accompagnant {    
+  background-color: #f3e8ff;    
+  color: #6b21a8;    
+  border: 1px solid #e9d5ff;    
+}    
+  
+.badge-actif {    
+  background-color: #dcfce7;    
+  color: #14532d;    
+  border: 1px solid #bbf7d0;    
+}    
+  
+.badge-conge {    
+  background-color: #fef3c7;    
+  color: #92400e;    
+  border: 1px solid #fde68a;    
+}    
+  
+.badge-inactif {    
+  background-color: #fef2f2;    
+  color: #991b1b;    
+  border: 1px solid #fecaca;    
+}    
+    
+.badge-default {    
+  background-color: #f3f4f6;    
+  color: #374151;    
+}    
+    
+/* Action Buttons */    
+.action-buttons {    
+  display: flex;    
+  gap: 0.5rem;    
+}    
+    
+.edit-action-button,    
+.delete-action-button {    
+  display: flex;    
+  align-items: center;    
+  justify-content: center;    
+  padding: 6px;    
+  border: none;    
+  border-radius: 6px;    
+  cursor: pointer;    
+  transition: background-color 0.2s ease;    
+}    
+    
+.edit-action-button {    
+  background-color: #f0f9ff;    
+  color: #0369a1;    
+}    
+    
+.edit-action-button:hover {    
+  background-color: #e0f2fe;    
+}    
+    
+.delete-action-button {    
+  background-color: #fef2f2;    
+  color: #dc2626;    
+}    
+    
+.delete-action-button:hover {    
+  background-color: #fee2e2;    
+}    
+    
+.action-icon {    
+  height: 1rem;    
+  width: 1rem;    
+}    
+    
+/* Modal Styles */    
+.modal-overlay {    
+  position: fixed;    
+  top: 0;    
+  left: 0;    
+  right: 0;    
+  bottom: 0;    
+  background-color: rgba(0, 0, 0, 0.5);    
+  display: flex;    
+  align-items: center;    
+  justify-content: center;    
+  z-index: 1000;    
+  -webkit-backdrop-filter: blur(2px);    
+  backdrop-filter: blur(2px);    
+  animation: fadeIn 0.2s ease-out;    
+}    
+    
+.modal-content {    
+  background-color: var(--white);    
+  border-radius: 12px;    
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);    
+  width: 95%;    
+  max-width: 600px;    
+  max-height: 90vh;    
+  overflow-y: auto;    
+  animation: slideIn 0.3s ease-out;    
+}    
+    
+.modal-header {    
+  display: flex;    
+  align-items: center;    
+  justify-content: space-between;    
+  padding: 24px 32px 16px 32px;    
+  border-bottom: 1px solid #e5e7eb;    
+}    
+    
+.modal-title {    
+  font-size: 1.25rem;    
+  font-weight: 600;    
+  color: #111827;    
+  margin: 0;    
+}    
+    
+.modal-close {    
+  display: flex;    
+  align-items: center;    
+  justify-content: center;    
+  padding: 8px;    
+  background: none;    
+  border: none;    
+  border-radius: 6px;    
+  cursor: pointer;    
+  transition: background-color 0.2s ease;    
+}    
+    
+.modal-close:hover {    
+  background-color: #f3f4f6;    
+}    
+    
+.close-icon {    
+  height: 1.25rem;    
+  width: 1.25rem;    
+  color: #6b7280;    
+}    
+    
+/* Form Styles */    
+.modal-form {    
+  padding: 24px 32px;    
+  display: flex;    
+  flex-direction: column;    
+  gap: 1.25rem;    
+}    
+    
+.form-group {    
+  display: flex;    
+  flex-direction: column;    
+  gap: 0.5rem;    
+}    
+    
+.form-label {    
+  font-size: 0.875rem;    
+  font-weight: 500;    
+  color: #374151;    
+}    
+    
+.form-input,    
+.form-select,    
+.form-textarea {    
+  width: 100%;    
+  min-width: 0;    
+  padding: 14px 16px;    
+  border: 1px solid #d1d5db;    
+  border-radius: 8px;    
+  font-size: 0.875rem;    
+  background-color: var(--white);    
+  transition: border-color 0.2s ease;    
+  box-sizing: border-box;    
+}    
+    
+.form-input:focus,    
+.form-select:focus,    
+.form-textarea:focus {    
+  outline: none;    
+  border-color: var(--primary-blue);    
+  box-shadow: 0 0 0 3px rgba(31, 85, 163, 0.1);    
+}    
+    
+.form-input::placeholder,    
+.form-textarea::placeholder {    
+  color: #9ca3af;    
+}    
+    
+.form-select {    
+  cursor: pointer;    
+}    
+    
+.form-textarea {    
+  resize: vertical;    
+  min-height: 80px;    
+}    
+    
+.form-actions {    
+  display: flex;    
+  justify-content: flex-end;    
+  gap: 0.75rem;    
+  margin-top: 1rem;    
+  padding-top: 1rem;    
+  border-top: 1px solid #e5e7eb;    
+}    
+    
+.cancel-button {    
+  padding: 12px 24px;    
+  border: 1px solid #d1d5db;    
+  background-color: var(--white);    
+  color: #374151;    
+  border-radius: 6px;    
+  font-weight: 500;    
+  cursor: pointer;    
+  transition: all 0.2s ease;    
+}    
+    
+.cancel-button:hover {    
+  background-color: #f9fafb;    
+}    
+    
+.badge-magasinier {  
+  background-color: #fef3c7;  
+  color: #92400e;  
+  border: 1px solid #fcd34d;  
+}
+.submit-button {  
+  padding: 12px 24px;  
+  background-color: var(--secondary-blue);  
+  color: var(--white);  
+  border: none;  
+  border-radius: 6px;  
+  font-weight: 500;  
+  cursor: pointer;  
+  transition: background-color 0.2s ease;  
+}  
+  
+.submit-button:hover {  
+  background-color: #2980b9;  
+}  
+  
+/* No Results */  
+.no-results {  
+  text-align: center;  
+  padding: 2rem;  
+  color: #6b7280;  
+  font-size: 0.875rem;  
+}  
+  
+/* Animations */  
+@keyframes fadeIn {  
+  from {  
+    opacity: 0;  
+  }  
+  to {  
+    opacity: 1;  
+  }  
+}  
+  
+@keyframes slideIn {  
+  from {  
+    opacity: 0;  
+    transform: translateY(-20px) scale(0.95);  
+  }  
+  to {  
+    opacity: 1;  
+    transform: translateY(0) scale(1);  
+  }  
+}  
+  
+@keyframes fadeInUp {  
+  from {  
+    opacity: 0;  
+    transform: translateY(20px);  
+  }  
+  to {  
+    opacity: 1;  
+    transform: translateY(0);  
+  }  
+}  
+  
+.stat-card,  
+.table-card {  
+  animation: fadeInUp 0.6s ease-out;  
+}  
+  
+.stat-card:nth-child(1) {  
+  animation-delay: 0.1s;  
+}  
+  
+.stat-card:nth-child(2) {  
+  animation-delay: 0.2s;  
+}  
+  
+.stat-card:nth-child(3) {  
+  animation-delay: 0.3s;  
+}  
+
+.stat-card:nth-child(4) {  
+  animation-delay: 0.4s;  
+}  
+  
+/* Responsive Design */  
+@media (max-width: 768px) {  
+  .chauffeur-management-wrapper {  
+    margin-left: 0 !important;  
+    width: 100vw !important;   
+    padding: 16px;  
+  }  
+    
+  body.sidebar-collapsed .chauffeur-management-wrapper {  
+    margin-left: 64px;  
+    width: calc(100vw - 64px);  
+  }  
+    
+  .stats-grid {  
+    grid-template-columns: 1fr;  
+    gap: 16px;  
+  }  
+    
+  .page-title {  
+    font-size: 1.5rem;  
+  }  
+    
+  .stat-card {  
+    padding: 16px;  
+  }  
+    
+  .table-card {  
+    margin: 0 -16px;  
+    border-radius: 0;  
+  }  
+    
+  .chauffeurs-table th,  
+  .chauffeurs-table td {  
+    padding: 8px 12px;  
+  }  
+    
+  .chauffeurs-table th {  
+    font-size: 0.625rem;  
+  }  
+    
+  .chauffeurs-table td {  
+    font-size: 0.75rem;  
+  }  
+    
+  .modal-content {  
+    width: 95%;  
+    max-width: 95vw;  
+    margin: 10px;  
+  }  
+    
+  .modal-header {  
+    padding: 20px 24px 16px 24px;  
+  }  
+    
+  .modal-form {  
+    padding: 20px 24px;  
+  }  
+}  
+  
+@media (max-width: 480px) {  
+  .chauffeur-management-wrapper {  
+    padding: 12px;  
+  }  
+    
+  .chauffeur-management-container {  
+    padding: 1rem;  
+  }  
+    
+  .page-header {  
+    margin-bottom: 1.5rem;  
+  }  
+    
+  .search-container {  
+    max-width: 100%;  
+  }  
+    
+  .add-button {  
+    width: 100%;  
+    justify-content: center;  
+  }  
+    
+  .table-header {  
+    padding: 16px;  
+  }  
+    
+  .chauffeurs-table {  
+    font-size: 0.75rem;  
+  }  
+    
+  .chauffeurs-table th,  
+  .chauffeurs-table td {  
+    padding: 6px 8px;  
+  }  
+    
+  .modal-content {  
+    width: 98%;  
+    max-width: 98vw;  
+    margin: 5px;  
+  }  
+    
+  .modal-header {  
+    padding: 16px 20px 12px 20px;  
+  }  
+    
+  .modal-form {  
+    padding: 16px 20px;  
+  }  
+}  
+  
+/* Hover Effects */  
+.stat-card:hover .stat-icon {  
+  transform: scale(1.05);  
+  transition: transform 0.2s ease;  
+}  
+  
+.table-card:hover {  
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);  
+}  
+  
+/* Focus States */  
+.add-button:focus,  
+.search-input:focus,  
+.edit-action-button:focus,  
+.delete-action-button:focus,  
+.cancel-button:focus,  
+.submit-button:focus {  
+  outline: 2px solid var(--primary-blue);  
+  outline-offset: 2px;  
+}  
+  
+/* Animation pour les éléments du modal */  
+.modal-form .form-group {  
+  animation: fadeInUp 0.4s ease-out;  
+}  
+  
+.modal-form .form-group:nth-child(1) {  
+  animation-delay: 0.1s;  
+}  
+  
+.modal-form .form-group:nth-child(2) {  
+  animation-delay: 0.15s;  
+}  
+  
+.modal-form .form-group:nth-child(3) {  
+  animation-delay: 0.2s;  
+}  
+  
+.modal-form .form-group:nth-child(4) {  
+  animation-delay: 0.25s;  
+}  
+  
+.modal-form .form-group:nth-child(5) {  
+  animation-delay: 0.3s;  
+}  
+  
+.modal-form .form-group:nth-child(6) {  
+  animation-delay: 0.35s;  
+}  
+
+.modal-form .form-group:nth-child(7) {  
+  animation-delay: 0.4s;  
+}  
+
+.modal-form .form-group:nth-child(8) {  
+  animation-delay: 0.45s;  
+}  
+  
+/* Styles pour les états de validation */  
+.form-input:invalid,  
+.form-select:invalid,  
+.form-textarea:invalid {  
+  border-color: var(--red);  
+}  
+  
+.form-input:valid,  
+.form-select:valid,  
+.form-textarea:valid {  
+  border-color: var(--green);  
+}  
+  
+/* Styles pour l'impression */  
+@media print {  
+  .modal-overlay,  
+  .add-button,  
+  .search-section,  
+  .action-buttons {  
+    display: none;  
+  }  
+    
+  .chauffeur-management-wrapper {  
+    margin-left: 0;  
+    margin-top: 0;  
+    padding: 0;  
+  }  
+    
+  .table-card {  
+    box-shadow: none;  
+    border: 1px solid #000;  
+  }  
+}
+
+/* Styles spécifiques pour les badges de chauffeurs */
+.badge-chauffeur::before {
+  content: "🚛";
+  margin-right: 4px;
+}
+
+.badge-accompagnant::before {
+  content: "👥";
+  margin-right: 4px;
+}
+
+/* Amélioration de l'accessibilité */
+@media (prefers-reduced-motion: reduce) {
+  .stat-card,
+  .table-card,
+  .modal-form .form-group {
+    animation: none;
+  }
+  
+  .stat-card:hover {
+    transform: none;
+  }
+}
+
+/* Mode sombre (optionnel) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --white: #1f2937;
+    --light-gray: #374151;
+    --dark-gray: #f9fafb;
+  }
+}

@@ -1,0 +1,43 @@
+.service-wrapper {  
+  margin-left: 256px;  
+  margin-top: 70px;  
+  min-height: calc(100vh - 70px);  
+  background-color: #f8f9fa;  
+  padding: 24px;  
+  transition: margin-left 0.3s ease, width 0.3s ease;  
+  width: calc(100vw - 256px);  
+}  
+  
+body.sidebar-collapsed .service-wrapper {  
+  margin-left: 64px;  
+  width: calc(100vw - 64px);  
+}  
+  
+.service-container {  
+  max-width: 1500px;  
+  margin: 0 auto;  
+  padding: 0;  
+}  
+  
+.service-content {  
+  background-color: #ffffff;  
+  border-radius: 8px;  
+  padding: 24px;  
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);  
+}
+
+
+.evaluation-success-layout {  
+  margin-left: 256px;  
+  margin-top: 70px;  
+  min-height: calc(100vh - 70px);  
+  background-color: var(--gray-50);  
+  transition: margin-left 0.3s ease, width 0.3s ease;  
+  width: calc(100vw - 256px);  
+}  
+  
+body.sidebar-collapsed .evaluation-success-layout {  
+  margin-left: 64px;  
+  width: calc(100vw - 64px);  
+}
+
