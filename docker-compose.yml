@@ -125,7 +125,24 @@ services:
       - /:/rootfs:ro  
     networks:  
       - chronogaz-network  
-            
+
+  mongodb-exporter:  
+    image: percona/mongodb_exporter:0.40  
+    container_name: chronogaz_mongodb_exporter  
+    restart: unless-stopped  
+    ports:  
+      - "9216:9216"  
+    environment:  
+      MONGODB_URI: "mongodb://root:chronogaz123@mongodb:27017"  
+    command:  
+      - '--mongodb.direct-connect=true'  
+      - '--mongodb.global-conn-pool=false'  
+      - '--collect-all'  
+    depends_on:  
+      mongodb:  
+        condition: service_healthy  
+    networks:  
+      - chronogaz-network
 volumes:            
   mongo_data:            
     driver: local  

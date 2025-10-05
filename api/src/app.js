@@ -63,7 +63,8 @@ require('./config/passport');
 require('dotenv').config();        
       
 const app = express();        
-  
+
+
 // Middleware        
 app.use(cors({  
   origin: process.env.FRONTEND_URL || "http://localhost:3000",  
@@ -1365,6 +1366,19 @@ app.use((err, req, res, next) => {
     error: process.env.NODE_ENV === 'development' ? err.message : 'Une erreur est survenue'                    
   });                    
 });  
+
+// Prometheus metrics endpoint  
+const promClient = require('prom-client');  
+const register = new promClient.Registry();  
+  
+// Métriques par défaut (CPU, mémoire, etc.)  
+promClient.collectDefaultMetrics({ register });  
+  
+// Endpoint pour Prometheus  
+app.get('/metrics', async (req, res) => {  
+  res.set('Content-Type', register.contentType);  
+  res.end(await register.metrics());  
+});
   
 // Exporter l'app sans démarrer le serveur  
 module.exports = app;
