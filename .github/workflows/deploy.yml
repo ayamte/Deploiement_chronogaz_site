@@ -1,39 +1,41 @@
-name: Deploy ChronoGaz to AWS  
-  
-on:  
-  push:  
-    branches:  
-      - main  
-  
-jobs:  
-  deploy:  
-    runs-on: ubuntu-latest  
-      
-    steps:  
-      - name: Checkout code  
-        uses: actions/checkout@v3  
+name: Deploy ChronoGaz to AWS    
+    
+on:    
+  push:    
+    branches:    
+      - main    
+    
+jobs:    
+  deploy:    
+    runs-on: ubuntu-latest    
         
-      - name: Deploy to AWS EC2  
-        uses: appleboy/ssh-action@master  
-        with:  
-          host: ${{ secrets.AWS_HOST }}  
-          username: ubuntu  # ← AJOUT IMPORTANT  
-          key: ${{ secrets.AWS_SSH_KEY }}  
-          script: |  
-            cd /home/ubuntu/chronogaz_app  
-              
-            # Pull les dernières modifications  
-            git pull origin main  
-              
-            # Rebuild les images Docker  
-            docker-compose build --no-cache  
-              
-            # Redémarrer les conteneurs  
-            docker-compose down  
-            docker-compose up -d  
-              
-            # Vérifier que tout fonctionne  
-            docker ps  
-              
-            # Nettoyer les images inutilisées  
-            docker image prune -f
+    steps:    
+      - name: Checkout code    
+        uses: actions/checkout@v3    
+          
+      - name: Deploy to AWS EC2    
+        uses: appleboy/ssh-action@master    
+        with:    
+          host: ${{ secrets.AWS_HOST }}    
+          username: ubuntu    
+          key: ${{ secrets.AWS_SSH_KEY }}    
+          script: |    
+            cd /home/ubuntu/chronogaz_app    
+                
+            # Pull les dernières modifications    
+            git pull origin main    
+                
+            # Rebuild les images Docker    
+            docker-compose build --no-cache    
+                
+            # Redémarrer les conteneurs    
+            docker-compose down    
+            docker-compose up -d    
+                
+            # Vérifier que tout fonctionne    
+            docker ps    
+                
+            # Nettoyer AGRESSIVEMENT les images inutilisées    
+            docker image prune -a -f    
+            docker volume prune -f    
+            docker system prune -f
