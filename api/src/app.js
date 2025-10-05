@@ -64,6 +64,28 @@ require('dotenv').config();
       
 const app = express();        
 
+const promClient = require('prom-client');  
+  
+// Créer un registre pour les métriques  
+const register = new promClient.Registry();  
+  
+// Ajouter les métriques par défaut (CPU, mémoire, etc.)  
+promClient.collectDefaultMetrics({ register });  
+  
+// Créer des métriques personnalisées  
+const httpRequestDuration = new promClient.Histogram({  
+  name: 'http_request_duration_seconds',  
+  help: 'Duration of HTTP requests in seconds',  
+  labelNames: ['method', 'route', 'status_code'],  
+  registers: [register]  
+});  
+  
+const httpRequestTotal = new promClient.Counter({  
+  name: 'http_requests_total',  
+  help: 'Total number of HTTP requests',  
+  labelNames: ['method', 'route', 'status_code'],  
+  registers: [register]  
+});
 
 // Middleware        
 app.use(cors({  
@@ -72,7 +94,25 @@ app.use(cors({
   credentials: true  
 }));        
 app.use(express.json());        
-app.use(express.urlencoded({ extended: true }));       
+app.use(express.urlencoded({ extended: true }));     
+
+app.use((req, res, next) => {  
+  const start = Date.now();  
+    
+  res.on('finish', () => {  
+    const duration = (Date.now() - start) / 1000;  
+    httpRequestDuration.labels(req.method, req.route?.path || req.path, res.statusCode).observe(duration);  
+    httpRequestTotal.labels(req.method, req.route?.path || req.path, res.statusCode).inc();  
+  });  
+    
+  next();  
+});  
+  
+// 4. ✅ ENDPOINT /metrics (AVANT LES AUTRES ROUTES)  
+app.get('/metrics', async (req, res) => {  
+  res.set('Content-Type', register.contentType);  
+  res.end(await register.metrics());  
+});  
   
 // Routes principales avec les nouveaux routers améliorés  
 app.use('/api/auth', authRoutes);        
@@ -1367,18 +1407,8 @@ app.use((err, req, res, next) => {
   });                    
 });  
 
-// Prometheus metrics endpoint  
-const promClient = require('prom-client');  
-const register = new promClient.Registry();  
-  
-// Métriques par défaut (CPU, mémoire, etc.)  
-promClient.collectDefaultMetrics({ register });  
-  
-// Endpoint pour Prometheus  
-app.get('/metrics', async (req, res) => {  
-  res.set('Content-Type', register.contentType);  
-  res.end(await register.metrics());  
-});
+
+
   
 // Exporter l'app sans démarrer le serveur  
 module.exports = app;
