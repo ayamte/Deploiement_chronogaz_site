@@ -74,7 +74,7 @@ const LoginPage = () => {
             <div className="login-icon">        
               <User className="icon" />        
             </div>        
-            <h1 className="login-title">Bon retour !</h1>        
+            <h1 className="login-title">Bon retour</h1>        
             <p className="login-subtitle">Connectez-vous à votre compte</p>        
           </div>        
         
