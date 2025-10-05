@@ -1,3 +1,40 @@
-node_modules
-api/.env 
-.env.production  
+# Fichiers sensibles  
+api/.env  
+.env  
+*.env  
+  
+# Certificats SSL  
+nginx/ssl/*.pem  
+nginx/ssl/*.key  
+  
+# Backups  
+backups/  
+*.tar.gz  
+  
+# Logs  
+*.log  
+  
+# Node modules  
+node_modules/  
+api/node_modules/  
+client/node_modules/  
+  
+# Build artifacts  
+client/build/  
+api/dist/  
+  
+# Fichiers système  
+.DS_Store  
+Thumbs.db  
+  
+# Clés SSH  
+*.pem  
+*.key  
+  
+# Données MongoDB  
+mongo_data/  
+  
+# Fichiers temporaires  
+*.tmp  
+*.swp  
+*~
