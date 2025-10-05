@@ -82,7 +82,6 @@ const TruckSchema = new mongoose.Schema({
 });  
   
 // Index pour optimiser les recherches  
-TruckSchema.index({ matricule: 1 }, { unique: true });  
 TruckSchema.index({ brand: 1 });  
 TruckSchema.index({ status: 1 });  
 TruckSchema.index({ driver: 1 });  
