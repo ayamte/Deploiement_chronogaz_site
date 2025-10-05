@@ -71,10 +71,68 @@ services:
       - frontend  
     networks:  
       - chronogaz-network  
+  
+  # Prometheus - Collecte de métriques  
+  prometheus:  
+    image: prom/prometheus:latest  
+    container_name: chronogaz_prometheus  
+    restart: unless-stopped  
+    ports:  
+      - "9090:9090"  
+    volumes:  
+      - /home/ubuntu/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro  
+      - prometheus_data:/prometheus  
+    command:  
+      - '--config.file=/etc/prometheus/prometheus.yml'  
+      - '--storage.tsdb.path=/prometheus'  
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'  
+      - '--web.console.templates=/usr/share/prometheus/consoles'  
+    networks:  
+      - chronogaz-network  
+  
+  # Grafana - Visualisation des métriques  
+  grafana:  
+    image: grafana/grafana:latest  
+    container_name: chronogaz_grafana  
+    restart: unless-stopped  
+    ports:  
+      - "3001:3000"  
+    environment:  
+      - GF_SECURITY_ADMIN_USER=admin  
+      - GF_SECURITY_ADMIN_PASSWORD=chronogaz123  
+      - GF_USERS_ALLOW_SIGN_UP=false  
+    volumes:  
+      - grafana_data:/var/lib/grafana  
+    depends_on:  
+      - prometheus  
+    networks:  
+      - chronogaz-network  
+  
+  # Node Exporter - Métriques du serveur  
+  node-exporter:  
+    image: prom/node-exporter:latest  
+    container_name: chronogaz_node_exporter  
+    restart: unless-stopped  
+    ports:  
+      - "9100:9100"  
+    command:  
+      - '--path.procfs=/host/proc'  
+      - '--path.sysfs=/host/sys'  
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'  
+    volumes:  
+      - /proc:/host/proc:ro  
+      - /sys:/host/sys:ro  
+      - /:/rootfs:ro  
+    networks:  
+      - chronogaz-network  
             
 volumes:            
   mongo_data:            
-    driver: local            
+    driver: local  
+  prometheus_data:  
+    driver: local  
+  grafana_data:  
+    driver: local  
             
 networks:            
   chronogaz-network:        
