@@ -12,14 +12,16 @@ class WebSocketService {
     this.lastIdentifyPayload = null;  
   }  
   
-  connect(serverUrl = 'http://localhost:5000') {  
+  connect(serverUrl = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000') {  
     try {  
       this.socket = io(serverUrl, {  
         autoConnect: true,  
         reconnection: true,  
         reconnectionDelay: 1000,  
-        reconnectionAttempts: this.maxReconnectAttempts  
-      });  
+        reconnectionAttempts: this.maxReconnectAttempts,  
+        path: '/socket.io/',  // ✅ IMPORTANT: Socket.io utilise ce path par défaut  
+        transports: ['websocket', 'polling']  // ✅ Fallback sur polling si WebSocket échoue  
+      }); 
   
       this.socket.on('connect', () => {  
         console.log('✅ WebSocket connecté');  
