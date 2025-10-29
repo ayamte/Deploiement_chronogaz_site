@@ -94,15 +94,14 @@ app.use(cors({
   credentials: true  
 }));   
 // ⚠️ ROUTES VULNÉRABLES - TESTS ACADÉMIQUES
-if (process.env.NODE_ENV !== 'production') {
-  try {
-    const vulnerableRoutes = require('./routes/vulnerable');
-    app.use('/api/vulnerable', vulnerableRoutes);
-    console.log('⚠️  Vulnerable test routes mounted at /api/vulnerable');
-  } catch (error) {
-    console.warn('⚠️  Vulnerable routes not found (expected in test environment)');
-  }
-}     
+try {  
+  const vulnerableRoutes = require('./routes/vulnerable');  
+  app.use('/api/vulnerable', vulnerableRoutes);  
+  console.log('⚠️  Vulnerable test routes mounted at /api/vulnerable');  
+} catch (error) {  
+  console.warn('⚠️  Vulnerable routes not found:', error.message);  
+}
+     
 app.use(express.json());        
 app.use(express.urlencoded({ extended: true }));     
 
