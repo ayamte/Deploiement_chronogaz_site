@@ -1,0 +1,40 @@
+name: DevSecOps Security Analysis
+
+on:
+  push:
+    branches: [main, develop, devsecops/vulnerable-testing]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    name: Static Security Analysis (SAST & SCA)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: |
+            client/package-lock.json
+            api/package-lock.json
+
+      # ✅ AJOUT : Installation de jq pour validation
+      - name: Install validation tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Install Dependencies - Client
+        working-directory: ./client
+        run: npm ci
+
+      - name: Install Dependencies - API
+        working-directory: ./api
+        run: npm ci

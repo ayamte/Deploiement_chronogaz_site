@@ -1,0 +1,9 @@
+{
+  "name": "chronogaz-client-vulnerable",
+  "version": "1.0.0-vulnerable",
+  "dependencies": {
+    "lodash": "4.17.15",
+    "moment": "2.29.1",
+    "axios": "0.21.1"
+  }
+}
