@@ -38,3 +38,109 @@ jobs:
       - name: Install Dependencies - API
         working-directory: ./api
         run: npm ci
+      
+            # ===================================
+      # SCA - Analyse des Dépendances
+      # ===================================
+
+      - name: SCA - NPM Audit (Client - Production)
+        working-directory: ./client
+        run: |
+          npm audit --json > ../sca-client-production.json || true
+          npm audit --audit-level=moderate || true
+        continue-on-error: true
+
+      - name: SCA - NPM Audit (Client - Vulnerable)
+        working-directory: ./client
+        run: |
+          cp package.json package.json.backup
+          cp package.vulnerable.json package.json
+
+          npm install --legacy-peer-deps
+          npm audit --json > ../sca-client-vulnerable.json || true
+
+          mv package.json.backup package.json
+        continue-on-error: true
+
+      - name: SCA - NPM Audit (API - Production)
+        working-directory: ./api
+        run: |
+          npm audit --json > ../sca-api-production.json || true
+          npm audit --audit-level=moderate || true
+        continue-on-error: true
+
+      - name: SCA - NPM Audit (API - Vulnerable)
+        working-directory: ./api
+        run: |
+          cp package.json package.json.backup
+          cp package.vulnerable.json package.json
+
+          npm install --legacy-peer-deps
+          npm audit --json > ../sca-api-vulnerable.json || true
+
+          mv package.json.backup package.json
+        continue-on-error: true
+
+      # ✅ CORRECTION : Ajout du timeout
+      - name: SCA - OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        timeout-minutes: 30  # ⚠️ IMPORTANT pour éviter timeouts
+        with:
+          project: 'ChronoGaz'
+          path: '.'
+          format: 'JSON,HTML'
+          out: 'dependency-check-reports'
+        continue-on-error: true
+
+      - name: Upload SCA Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sca-reports
+          path: |
+            sca-client-production.json
+            sca-client-vulnerable.json
+            sca-api-production.json
+            sca-api-vulnerable.json
+            dependency-check-reports/
+          retention-days: 30
+      
+            # ===================================
+      # SAST - Analyse Statique du Code
+      # ===================================
+
+      - name: SAST - ESLint Security Plugin
+        run: |
+          npm install -g eslint eslint-plugin-security eslint-plugin-no-secrets
+
+          # Configuration ESLint
+          cat > .eslintrc.security.json << 'EOF'
+          {
+            "plugins": ["security", "no-secrets"],
+            "extends": ["plugin:security/recommended"],
+            "rules": {
+              "no-secrets/no-secrets": "error",
+              "security/detect-eval-with-expression": "error"
+            }
+          }
+          EOF
+
+          # Scanner
+          eslint client/src --config .eslintrc.security.json \
+            --format json --output-file sast-eslint-client.json || true
+
+          eslint api/src --config .eslintrc.security.json \
+            --format json --output-file sast-eslint-api.json || true
+        continue-on-error: true
+
+      - name: Upload SAST Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sast-reports
+          path: |
+            sast-eslint-*.json
+          retention-days: 30
+
+
+
