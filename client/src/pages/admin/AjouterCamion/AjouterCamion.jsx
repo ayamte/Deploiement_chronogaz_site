@@ -245,7 +245,7 @@ export default function AjouterCamion() {
                     <ArrowLeft className="btn-icon" />    
                     Retour    
                   </button>    
-                  <h2 className="page-title">Ajouter un Nouveau Camion</h2>        
+                  <h2 className="page-title">+ Ajouter un Nouveau Camion</h2>        
                   <p className="page-subtitle">        
                     Ajoutez un nouveau camion à votre flotte avec toutes les informations nécessaires        
                   </p>        
