@@ -165,12 +165,6 @@ jobs:
   }
 }
 ESLINTEOF
-          
-          echo "📄 Vérification du fichier de config:"
-          cat .eslintrc.security.json
-          echo ""
-          echo "✅ Validation JSON:"
-          jq . .eslintrc.security.json || echo "❌ JSON invalide!"
 
           echo '[]' > sast-eslint-client.json
           echo '[]' > sast-eslint-api.json
