@@ -153,21 +153,38 @@ jobs:
           echo '[]' > sast-eslint-api.json
           
           run_eslint_scan() {
-            base=$1
-            pattern=$2
-            out=$3
-            echo "🔍 Lancement ESLint sur $base"
+            dir=$1
+            out=$2
+            echo "🔍 Lancement ESLint sur $dir"
             
-            eslint "$pattern" --config .eslintrc.security.json --format json --output-file "$out" 2>&1 || true
+            if [ -d "$dir" ]; then
+              # Trouver tous les fichiers JS/JSX dans le répertoire
+              find "$dir" -type f \( -name "*.js" -o -name "*.jsx" \) > /tmp/files_to_scan.txt
+              
+              if [ -s /tmp/files_to_scan.txt ]; then
+                echo "📁 Fichiers trouvés:"
+                cat /tmp/files_to_scan.txt
+                
+                # Scanner avec ESLint
+                eslint --config .eslintrc.security.json --format json --output-file "$out" $(cat /tmp/files_to_scan.txt) 2>&1 || true
+              else
+                echo "⚠️ Aucun fichier trouvé dans $dir"
+                echo '[]' > "$out"
+              fi
+            else
+              echo "⚠️ Répertoire $dir introuvable"
+              echo '[]' > "$out"
+            fi
 
+            # Valider le JSON
             if ! jq -e . "$out" >/dev/null 2>&1; then
               echo "⚠️ $out n'est pas un JSON valide. Réinitialisation."
               echo '[]' > "$out"
             fi
           }
 
-          run_eslint_scan client/src 'client/src/**/*.{js,jsx}' sast-eslint-client.json
-          run_eslint_scan api/src 'api/src/**/*.js' sast-eslint-api.json
+          run_eslint_scan client/src sast-eslint-client.json
+          run_eslint_scan api/src sast-eslint-api.json
 
           echo "✅ Final Client: $(stat -c%s sast-eslint-client.json 2>/dev/null || echo 0) bytes"
           echo "✅ Final API: $(stat -c%s sast-eslint-api.json 2>/dev/null || echo 0) bytes"
