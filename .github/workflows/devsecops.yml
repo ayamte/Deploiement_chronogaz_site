@@ -141,19 +141,12 @@ jobs:
           
           cd $GITHUB_WORKSPACE
           
-          cat > .eslintrc.security.json <<'ESLINTEOF'
-{
-  "env": {
-    "browser": true,
-    "es2021": true,
-    "node": true
-  },
+          echo '{
+  "env": {"browser": true, "es2021": true, "node": true},
   "parserOptions": {
     "ecmaVersion": 2021,
     "sourceType": "module",
-    "ecmaFeatures": {
-      "jsx": true
-    }
+    "ecmaFeatures": {"jsx": true}
   },
   "plugins": ["security", "no-secrets"],
   "extends": ["plugin:security/recommended"],
@@ -163,8 +156,7 @@ jobs:
     "security/detect-unsafe-regex": "error",
     "security/detect-non-literal-fs-filename": "warn"
   }
-}
-ESLINTEOF
+}' > .eslintrc.security.json
 
           echo '[]' > sast-eslint-client.json
           echo '[]' > sast-eslint-api.json
