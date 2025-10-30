@@ -131,11 +131,10 @@ jobs:
           
           cd $GITHUB_WORKSPACE
           
-          # Créer config ESLint (en une ligne pour éviter problèmes d'indentation)
-          printf '{"env":{"browser":true,"es2021":true,"node":true},"parserOptions":{"ecmaVersion":2021,"sourceType":"module","ecmaFeatures":{"jsx":true}},"plugins":["security","no-secrets"],"extends":["plugin:security/recommended"],"rules":{"no-secrets/no-secrets":"warn","security/detect-eval-with-expression":"error","security/detect-unsafe-regex":"error","security/detect-non-literal-fs-filename":"warn"}}' > .eslintrc.json
+          # Créer config ESLint SANS extends (pour éviter le bug du plugin)
+          printf '{"env":{"browser":true,"es2021":true,"node":true},"parserOptions":{"ecmaVersion":2021,"sourceType":"module","ecmaFeatures":{"jsx":true}},"plugins":["security","no-secrets"],"rules":{"no-secrets/no-secrets":"warn","security/detect-eval-with-expression":"error","security/detect-non-literal-require":"warn","security/detect-non-literal-regexp":"warn","security/detect-non-literal-fs-filename":"warn","security/detect-unsafe-regex":"error","security/detect-buffer-noassert":"warn","security/detect-child-process":"warn","security/detect-disable-mustache-escape":"warn","security/detect-no-csrf-before-method-override":"warn","security/detect-possible-timing-attacks":"warn","security/detect-pseudoRandomBytes":"warn","security/detect-object-injection":"warn"}}' > .eslintrc.json
           
-          echo "📄 Vérification config:"
-          cat .eslintrc.json | jq .
+          echo "📄 Config générée (sans extends)"
           
           echo '[]' > sast-eslint-client.json
           echo '[]' > sast-eslint-api.json
