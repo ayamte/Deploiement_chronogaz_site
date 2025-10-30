@@ -217,50 +217,36 @@ jobs:
           echo '[]' > sast-eslint-client.json  
           echo '[]' > sast-eslint-api.json  
             
-          # Scanner Client - NOUVELLE APPROCHE SANS XARGS  
+          # Scanner Client - APPROCHE DIRECTE  
           echo ""  
           echo "🔍 Scan SAST Client..."  
             
-          # Créer un tableau bash avec les fichiers  
-          CLIENT_FILES=()  
-          while IFS= read -r file; do  
-            CLIENT_FILES+=("$file")  
-          done < <(find client/src -type f \( -name "*.js" -o -name "*.jsx" \) ! -path "*/node_modules/*" 2>/dev/null)  
-            
-          if [ ${#CLIENT_FILES[@]} -gt 0 ]; then  
-            echo "Fichiers trouvés: ${#CLIENT_FILES[@]}"  
-            echo "Exemples:"  
-            printf '%s\n' "${CLIENT_FILES[@]}" | head -5  
-              
-            # Appeler ESLint directement avec le tableau  
-            eslint "${CLIENT_FILES[@]}" \  
+          if [ -d "client/src" ]; then  
+            # Utiliser ESLint directement avec le pattern glob  
+            eslint 'client/src/**/*.{js,jsx}' \  
               --config .eslintrc.security.json \  
               --format json \  
               --output-file sast-eslint-client.json 2>&1 || echo "⚠️ Scan terminé"  
+              
+            echo "✅ Scan Client terminé"  
           else  
-            echo "⚠️ Aucun fichier trouvé"  
+            echo "⚠️ Dossier client/src introuvable"  
           fi  
             
-          # Scanner API - NOUVELLE APPROCHE SANS XARGS  
+          # Scanner API - APPROCHE DIRECTE  
           echo ""  
           echo "🔍 Scan SAST API..."  
             
-          API_FILES=()  
-          while IFS= read -r file; do  
-            API_FILES+=("$file")  
-          done < <(find api/src -type f -name "*.js" ! -path "*/node_modules/*" ! -path "*/coverage/*" 2>/dev/null)  
-            
-          if [ ${#API_FILES[@]} -gt 0 ]; then  
-            echo "Fichiers trouvés: ${#API_FILES[@]}"  
-            echo "Exemples:"  
-            printf '%s\n' "${API_FILES[@]}" | head -5  
-              
-            eslint "${API_FILES[@]}" \  
+          if [ -d "api/src" ]; then  
+            # Utiliser ESLint directement avec le pattern glob  
+            eslint 'api/src/**/*.js' \  
               --config .eslintrc.security.json \  
               --format json \  
               --output-file sast-eslint-api.json 2>&1 || echo "⚠️ Scan terminé"  
+              
+            echo "✅ Scan API terminé"  
           else  
-            echo "⚠️ Aucun fichier trouvé"  
+            echo "⚠️ Dossier api/src introuvable"  
           fi  
             
           # Vérification finale  
