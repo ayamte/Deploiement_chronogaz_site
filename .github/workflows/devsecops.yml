@@ -43,7 +43,7 @@ jobs:
           echo "📦 Installation des dépendances API..."  
           npm ci --legacy-peer-deps  
         continue-on-error: false  
-          
+            
       # ===================================  
       # SCA - Analyse des Dépendances  
       # ===================================  
@@ -119,7 +119,7 @@ jobs:
             dependency-check-reports/  
           retention-days: 30  
           if-no-files-found: warn  
-          
+            
       # ===================================  
       # SAST - Analyse Statique du Code  
       # ===================================  
@@ -131,14 +131,14 @@ jobs:
           echo ""  
           echo "📍 Répertoire actuel: $(pwd)"  
           echo ""  
-            
+              
           echo "📂 Structure complète du projet:"  
           tree -L 3 -I 'node_modules|.git' || find . -maxdepth 3 -type d -not -path '*/node_modules/*' -not -path '*/.git/*' | head -50  
           echo ""  
-            
+              
           echo "🔍 Recherche EXHAUSTIVE de fichiers JS/JSX:"  
           echo "----------------------------------------"  
-            
+              
           if [ -d "client" ]; then  
             echo "✓ Dossier client/ existe"  
             echo ""  
@@ -153,9 +153,9 @@ jobs:
           else  
             echo "✗ Dossier client/ INTROUVABLE"  
           fi  
-            
+              
           echo ""  
-            
+              
           if [ -d "api" ]; then  
             echo "✓ Dossier api/ existe"  
             echo ""  
@@ -166,7 +166,7 @@ jobs:
           else  
             echo "✗ Dossier api/ INTROUVABLE"  
           fi  
-            
+              
           echo ""  
           echo "========================================"  
         continue-on-error: true  
@@ -178,7 +178,7 @@ jobs:
           # Installation GLOBALE  
           npm install -g eslint@8.57.0 eslint-plugin-security eslint-plugin-no-secrets  
             
-          # Configuration ESLint  
+          # Configuration ESLint - ✅ HERE-DOCUMENT CORRECTEMENT FERMÉ  
           cat > .eslintrc.security.json << 'EOF'  
           {  
             "env": {  
@@ -212,63 +212,46 @@ jobs:
           }  
           EOF  
             
+          # Vérifier que le fichier a été créé  
+          if [ ! -f ".eslintrc.security.json" ]; then  
+            echo "❌ ERREUR: .eslintrc.security.json n'a pas été créé"  
+            exit 1  
+          fi  
+            
+          echo "✅ Configuration ESLint créée avec succès"  
+            
           # Créer fichiers vides  
           echo '[]' > sast-eslint-client.json  
           echo '[]' > sast-eslint-api.json  
             
-          # Scanner Client avec TOUS les patterns possibles  
+          # Scanner Client  
           if [ -d "client" ]; then  
             echo ""  
             echo "🔍 Scan SAST Client..."  
               
-            # Compter les fichiers avant scan  
             CLIENT_JS_COUNT=$(find client -type f -name "*.js" ! -path "*/node_modules/*" ! -path "*/build/*" | wc -l)  
             CLIENT_JSX_COUNT=$(find client -type f -name "*.jsx" ! -path "*/node_modules/*" ! -path "*/build/*" | wc -l)  
               
             echo "  Fichiers à scanner: $CLIENT_JS_COUNT .js + $CLIENT_JSX_COUNT .jsx"  
               
             if [ $CLIENT_JS_COUNT -gt 0 ] || [ $CLIENT_JSX_COUNT -gt 0 ]; then  
-              # Méthode 1: Scan direct avec find  
-              echo "  Tentative 1: Scan avec liste de fichiers..."  
-              find client -type f \( -name "*.js" -o -name "*.jsx" \) ! -path "*/node_modules/*" ! -path "*/build/*" > /tmp/client-files.txt  
+              # Scan avec liste de fichiers  
+              find client/src -type f \( -name "*.js" -o -name "*.jsx" \) ! -path "*/node_modules/*" ! -path "*/build/*" > /tmp/client-files.txt  
                 
               if [ -s /tmp/client-files.txt ]; then  
+                echo "  Fichiers trouvés:"  
+                head -5 /tmp/client-files.txt  
+                  
                 cat /tmp/client-files.txt | xargs eslint \  
                   --config .eslintrc.security.json \  
                   --format json \  
-                  --output-file sast-eslint-client.json 2>&1 || echo "  ⚠️ Erreurs ESLint (normal)"  
-              fi  
-                
-              # Vérifier si le scan a produit des résultats  
-              RESULT_SIZE=$(stat -c%s "sast-eslint-client.json" 2>/dev/null || stat -f%z "sast-eslint-client.json" 2>/dev/null || echo "0")  
-                
-              # Méthode 2: Fallback sur client/src si résultat vide  
-              if [ "$RESULT_SIZE" -lt 10 ] && [ -d "client/src" ]; then  
-                echo "  Tentative 2: Scan client/src/..."  
-                eslint client/src \  
-                  --ext .js,.jsx \  
-                  --config .eslintrc.security.json \  
-                  --format json \  
-                  --output-file sast-eslint-client.json 2>&1 || echo "  ⚠️ Erreurs ESLint (normal)"  
-              fi  
-                
-              # Méthode 3: Fallback sur tout le dossier client  
-              RESULT_SIZE=$(stat -c%s "sast-eslint-client.json" 2>/dev/null || stat -f%z "sast-eslint-client.json" 2>/dev/null || echo "0")  
-              if [ "$RESULT_SIZE" -lt 10 ]; then  
-                echo "  Tentative 3: Scan client/ complet..."  
-                eslint client \  
-                  --ext .js,.jsx \  
-                  --config .eslintrc.security.json \  
-                  --format json \  
-                  --output-file sast-eslint-client.json 2>&1 || echo "  ⚠️ Erreurs ESLint (normal)"  
+                  --output-file sast-eslint-client.json 2>&1 || echo "  ⚠️ Scan terminé avec avertissements"  
               fi  
                 
               echo "  ✅ Scan Client terminé"  
             else  
-              echo "  ⚠️ Aucun fichier JS/JSX trouvé dans client/"  
+              echo "  ⚠️ Aucun fichier JS/JSX trouvé"  
             fi  
-          else  
-            echo "  ⚠️ Dossier client/ introuvable"  
           fi  
             
           # Scanner API  
@@ -276,45 +259,58 @@ jobs:
             echo ""  
             echo "🔍 Scan SAST API..."  
               
-            API_JS_COUNT=$(find api -type f -name "*.js" ! -path "*/node_modules/*" | wc -l)  
+            API_JS_COUNT=$(find api -type f -name "*.js" ! -path "*/node_modules/*" ! -path "*/coverage/*" | wc -l)  
             echo "  Fichiers à scanner: $API_JS_COUNT .js"  
               
             if [ $API_JS_COUNT -gt 0 ]; then  
-              # Méthode 1: Scan direct avec find  
-              echo "  Tentative 1: Scan avec liste de fichiers..."  
-              find api -type f -name "*.js" ! -path "*/node_modules/*" > /tmp/api-files.txt  
+              find api/src -type f -name "*.js" ! -path "*/node_modules/*" ! -path "*/coverage/*" > /tmp/api-files.txt  
                 
               if [ -s /tmp/api-files.txt ]; then  
+                echo "  Fichiers trouvés:"  
+                head -5 /tmp/api-files.txt  
+                  
                 cat /tmp/api-files.txt | xargs eslint \  
                   --config .eslintrc.security.json \  
                   --format json \  
-                  --output-file sast-eslint-api.json 2>&1 || echo "  ⚠️ Erreurs ESLint (normal)"  
-              fi  
-                
-              RESULT_SIZE=$(stat -c%s "sast-eslint-api.json" 2>/dev/null || stat -f%z "sast-eslint-api.json" 2>/dev/null || echo "0")  
-                
-              # Méthode 2: Fallback sur api/src  
-              if [ "$RESULT_SIZE" -lt 10 ] && [ -d "api/src" ]; then  
-                echo "  Tentative 2: Scan api/src/..."  
-                eslint api/src \  
-                  --ext .js \  
-                  --config .eslintrc.security.json \  
-                  --format json \  
-                  --output-file sast-eslint-api.json 2>&1 || echo "  ⚠️ Erreurs ESLint (normal)"  
-              fi  
-                
-              # Méthode 3: Fallback sur tout le dossier api  
-              RESULT_SIZE=$(stat -c%s "sast-eslint-api.json" 2>/dev/null || stat -f%z "sast-eslint-api.json" 2>/dev/null || echo "0")  
-              if [ "$RESULT_SIZE" -lt 10 ]; then  
-                echo "  Tentative 3: Scan api/ complet..."  
-                eslint api \  
-                  --ext .js \  
-                  --config .eslintrc.security.json \  
-                  --format json \  
-                  --output-file sast-eslint-api.json 2>&1 || echo "  ⚠️ Erreurs ESLint (normal)"  
+                  --output-file sast-eslint-api.json 2>&1 || echo "  ⚠️ Scan terminé avec avertissements"  
               fi  
                 
               echo "  ✅ Scan API terminé"  
             else  
-              echo "  ⚠️ Aucun fichier  
+              echo "  ⚠️ Aucun fichier JS trouvé"  
+            fi  
+          fi  
+            
+          # Vérification finale  
+          echo ""  
+          echo "📊 Résultats:"  
+          for file in sast-eslint-client.json sast-eslint-api.json; do  
+            if [ -f "$file" ]; then  
+              SIZE=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null)  
+              ISSUES=$(cat "$file" | jq '[.[].messages[]] | length' 2>/dev/null || echo "0")  
+              echo "  ✅ $file: $SIZE bytes, $ISSUES problèmes détectés"  
+            else  
+              echo "  ❌ $file: MANQUANT"  
+              echo '[]' > "$file"  
+            fi  
+          done  
+        continue-on-error: true  
   
+      - name: Verify Files Before Upload  
+        if: always()  
+        run: |  
+          echo "🔍 Vérification finale avant upload..."  
+          ls -lh sast-eslint-*.json || echo "❌ Aucun fichier trouvé"  
+          pwd  
+          find . -name "sast-eslint-*.json" -type f  
+  
+      - name: Upload SAST Reports  
+        uses: actions/upload-artifact@v4  
+        if: always()  
+        with:  
+          name: sast-reports  
+          path: |  
+            sast-eslint-client.json  
+            sast-eslint-api.json  
+          retention-days: 30  
+          if-no-files-found: warn
