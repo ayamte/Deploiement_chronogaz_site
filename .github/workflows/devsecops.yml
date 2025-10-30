@@ -125,13 +125,27 @@ jobs:
           }
           EOF
 
-          # Scanner
+          # Scanner Client
           eslint client/src --config .eslintrc.security.json \
             --format json --output-file sast-eslint-client.json || true
 
+          # Scanner API
           eslint api/src --config .eslintrc.security.json \
             --format json --output-file sast-eslint-api.json || true
+
+          # Verify files were created
+          ls -la sast-eslint-*.json || echo "No SAST reports generated"
         continue-on-error: true
+
+      - name: Debug - List files
+        if: always()
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Files in current directory:"
+          ls -la
+          echo "Searching for SAST files:"
+          find . -name "sast-eslint-*.json" -type f
 
       - name: Upload SAST Reports
         uses: actions/upload-artifact@v4
