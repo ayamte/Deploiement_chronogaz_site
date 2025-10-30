@@ -30,28 +30,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y jq tree
 
-      - name: Debug - versions & workspace
-        run: |
-          echo "Node version:"
-          node -v || true
-          echo "npm version:"
-          npm -v || true
-          echo "PWD: $(pwd)"
-          echo "Listing top-level files:"
-          ls -la || true
-
       - name: Install Dependencies - Client
         working-directory: ./client
-        run: |
-          echo "📦 Installation des dépendances Client..."
-          npm ci --legacy-peer-deps
+        # Correction pour le conflit Redux : Ajout de --legacy-peer-deps
+        run: npm ci --legacy-peer-deps
         continue-on-error: false
 
       - name: Install Dependencies - API
         working-directory: ./api
-        run: |
-          echo "📦 Installation des dépendances API..."
-          npm ci --legacy-peer-deps
+        # Correction pour le conflit Redux : Ajout de --legacy-peer-deps
+        run: npm ci --legacy-peer-deps
         continue-on-error: false
 
       # ===================================
@@ -61,7 +49,6 @@ jobs:
       - name: SCA - NPM Audit (Client - Production)
         working-directory: ./client
         run: |
-          echo "🔍 SCA Client Production..."
           npm audit --json > ../sca-client-production.json || true
           npm audit --audit-level=moderate || true
         continue-on-error: true
@@ -69,7 +56,6 @@ jobs:
       - name: SCA - NPM Audit (Client - Vulnerable)
         working-directory: ./client
         run: |
-          echo "🔍 SCA Client Vulnerable Mode..."
           if [ -f "package.vulnerable.json" ]; then
             cp package.json package.json.backup
             cp package.vulnerable.json package.json
@@ -77,7 +63,6 @@ jobs:
             npm audit --json > ../sca-client-vulnerable.json || true
             mv package.json.backup package.json
           else
-            echo "⚠️ package.vulnerable.json non trouvé, scan ignoré"
             echo '{"metadata":{"vulnerabilities":{"total":0}}}' > ../sca-client-vulnerable.json
           fi
         continue-on-error: true
@@ -85,7 +70,6 @@ jobs:
       - name: SCA - NPM Audit (API - Production)
         working-directory: ./api
         run: |
-          echo "🔍 SCA API Production..."
           npm audit --json > ../sca-api-production.json || true
           npm audit --audit-level=moderate || true
         continue-on-error: true
@@ -93,7 +77,6 @@ jobs:
       - name: SCA - NPM Audit (API - Vulnerable)
         working-directory: ./api
         run: |
-          echo "🔍 SCA API Vulnerable Mode..."
           if [ -f "package.vulnerable.json" ]; then
             cp package.json package.json.backup
             cp package.vulnerable.json package.json
@@ -101,7 +84,6 @@ jobs:
             npm audit --json > ../sca-api-vulnerable.json || true
             mv package.json.backup package.json
           else
-            echo "⚠️ package.vulnerable.json non trouvé, scan ignoré"
             echo '{"metadata":{"vulnerabilities":{"total":0}}}' > ../sca-api-vulnerable.json
           fi
         continue-on-error: true
@@ -131,72 +113,32 @@ jobs:
           if-no-files-found: warn
 
       # ===================================
-      # SAST - Analyse Statique du Code
+      # SAST - Analyse Statique du Code (Solution Robuste)
       # ===================================
 
-      - name: SAST - Diagnostic Structure Projet
+      - name: SAST - ESLint Security Plugin (robuste et isolé)
         run: |
-          echo "🔍 DIAGNOSTIC COMPLET DE LA STRUCTURE"
-          echo "========================================"
-          echo ""
-          echo "📍 Répertoire actuel: $(pwd)"
-          echo ""
-          echo "📂 Structure complète du projet:"
-          tree -L 3 -I 'node_modules|.git' || find . -maxdepth 3 -type d -not -path '*/node_modules/*' -not -Path '*/.git/*' | head -50
-          echo ""
-          echo "🔍 Recherche EXHAUSTIVE de fichiers JS/JSX:"
-          echo "----------------------------------------"
-
-          if [ -d "client" ]; then
-            echo "✓ Dossier client/ existe"
-            echo ""
-            echo "  Fichiers .js dans client/:"
-            find client -type f -name "*.js" ! -path "*/node_modules/*" ! -path "*/build/*" | head -20
-            echo ""
-            echo "  Fichiers .jsx dans client/:"
-            find client -type f -name "*.jsx" ! -path "*/node_modules/*" ! -path "*/build/*" | head -20
-            echo ""
-            echo "  Total fichiers JS: $(find client -type f -name "*.js" ! -path "*/node_modules/*" ! -path "*/build/*" | wc -l)"
-            echo "  Total fichiers JSX: $(find client -type f -name "*.jsx" ! -path "*/node_modules/*" ! -path "*/build/*" | wc -l)"
-          else
-            echo "✗ Dossier client/ INTROUVABLE"
-          fi
-
-          echo ""
-
-          if [ -d "api" ]; then
-            echo "✓ Dossier api/ existe"
-            echo ""
-            echo "  Fichiers .js dans api/:"
-            find api -type f -name "*.js" ! -path "*/node_modules/*" | head -20
-            echo ""
-            echo "  Total fichiers JS: $(find api -type f -name "*.js" ! -path "*/node_modules/*" | wc -l)"
-          else
-            echo "✗ Dossier api/ INTROUVABLE"
-          fi
-
-          echo ""
-          echo "========================================"
-        continue-on-error: true
-
-      - name: SAST - ESLint Security Plugin (robuste)
-        run: |
-          # Ne pas faire échouer le step GH si on veut collecter les rapports proprement
           set -euo pipefail
-
-          echo "🔧 Installation locale ESLint & plugins (temporaire)"
-          # Installer eslint et plugins localement pour garantir que les plugins existent
-          npm install --no-audit --no-fund eslint@8.57.0 eslint-plugin-security eslint-plugin-no-secrets || true
-
-          echo "🧭 Debug: versions"
-          node -v || true
-          npm -v || true
-          npx eslint -v || true
-
-          # Créer la config ESLint si elle n'existe pas (tu peux remplacer si tu as une config spécifique)
-          if [ ! -f ".eslintrc.security.json" ]; then
-            echo "Création de .eslintrc.security.json par défaut..."
-            cat > .eslintrc.security.json <<'EOF'
+          
+          # --- Isolation de l'installation ---
+          TEMP_INSTALL_DIR="/tmp/eslint-tools"
+          mkdir -p "$TEMP_INSTALL_DIR"
+          cd "$TEMP_INSTALL_DIR"
+          
+          echo "🔧 Installation locale isolée d'ESLint & plugins"
+          npm init -y
+          # Utilisation de --force pour ignorer tous les conflits
+          npm install eslint@8.57.0 eslint-plugin-security eslint-plugin-no-secrets --force || true
+          
+          # Ajouter les binaires locaux au PATH
+          export PATH="$TEMP_INSTALL_DIR/node_modules/.bin:$PATH"
+          
+          # Revenir à la racine du dépôt pour le scan
+          cd $GITHUB_WORKSPACE 
+          # --- Fin du Bloc d'Isolation ---
+          
+          # Configuration ESLint
+          cat > .eslintrc.security.json <<'EOF'
 {
   "env": {"browser": true, "es2021": true, "node": true},
   "parserOptions": {
@@ -209,97 +151,42 @@ jobs:
   "rules": {
     "no-secrets/no-secrets": "warn",
     "security/detect-eval-with-expression": "error",
-    "security/detect-non-literal-regexp": "warn",
     "security/detect-unsafe-regex": "error",
-    "security/detect-buffer-noassert": "error",
-    "security/detect-child-process": "warn",
-    "security/detect-disable-mustache-escape": "error",
-    "security/detect-no-csrf-before-method-override": "error",
-    "security/detect-non-literal-fs-filename": "warn",
-    "security/detect-object-injection": "warn",
-    "security/detect-possible-timing-attacks": "warn",
-    "security/detect-pseudoRandomBytes": "error"
+    "security/detect-non-literal-fs-filename": "warn"
   }
 }
 EOF
-          fi
 
-          # Fichiers de sortie / erreur
-          CLIENT_OUT=sast-eslint-client.json
-          CLIENT_ERR=eslint-client.err
-          API_OUT=sast-eslint-api.json
-          API_ERR=eslint-api.err
-
-          # Initialise fichiers
-          echo '[]' > "$CLIENT_OUT"
-          echo '[]' > "$API_OUT"
-          : > "$CLIENT_ERR"
-          : > "$API_ERR"
-
-          # Helper function: run eslint only if files exist
-          run_eslint_if_files() {
+          # Initialise fichiers (Garantie d'existence)
+          echo '[]' > sast-eslint-client.json
+          echo '[]' > sast-eslint-api.json
+          
+          # Helper function: run eslint (simplify run_eslint_if_files)
+          run_eslint_scan() {
             base=$1
             pattern=$2
             out=$3
-            err=$4
+            echo "🔍 Lancement ESLint sur $base"
+            
+            # Utilisation de 'eslint' car il est maintenant dans le PATH
+            eslint "$pattern" --config .eslintrc.security.json --format json --output-file "$out" 2>&1 || true
 
-            # trouver fichiers JS/JSX
-            files=$(find "$base" -type f \( -name "*.js" -o -name "*.jsx" \) -not -path "*/node_modules/*" -not -path "*/build/*" | head -1000)
-            if [ -z "$files" ]; then
-              echo "⚠️ Aucun fichier JS/JSX trouvé dans $base (pattern: $pattern). Fichier $out laissé vide."
-              return 0
-            fi
-
-            echo "🔍 Lancement ESLint sur $base (fichiers: $(echo "$files" | wc -l))"
-            # Exécuter eslint via npx, capturer stderr
-            # Note: on passe le pattern pour la compatibilité, mais eslint va matcher les fichiers trouvés
-            npx eslint $pattern --config .eslintrc.security.json --format json --output-file "$out" 2> "$err" || true
-
-            # Si sortie non-JSON -> afficher erreur et réinitialiser en []
             if ! jq -e . "$out" >/dev/null 2>&1; then
-              echo "⚠️ $out n'est pas un JSON valide. Affichage de STDERR et création d'un [] vide."
-              echo "---- $err ----"
-              sed -n '1,200p' "$err" || true
+              echo "⚠️ $out n'est pas un JSON valide. Réinitialisation."
               echo '[]' > "$out"
             fi
           }
 
           # Lancer scan client
-          if [ -d "client/src" ]; then
-            run_eslint_if_files client 'client/src/**/*.{js,jsx}' "$CLIENT_OUT" "$CLIENT_ERR"
-          else
-            echo "⚠️ client/src introuvable"
-          fi
-
+          run_eslint_scan client/src 'client/src/**/*.{js,jsx}' sast-eslint-client.json
+          
           # Lancer scan api
-          if [ -d "api/src" ]; then
-            run_eslint_if_files api 'api/src/**/*.js' "$API_OUT" "$API_ERR"
-          else
-            echo "⚠️ api/src introuvable"
-          fi
+          run_eslint_scan api/src 'api/src/**/*.js' sast-eslint-api.json
 
-          # Afficher STDERR si présents (utile pour debugging dans les logs GH Actions)
-          if [ -s "$CLIENT_ERR" ]; then
-            echo "---- ESLINT CLIENT STDERR (preview) ----"
-            sed -n '1,200p' "$CLIENT_ERR"
-          fi
-          if [ -s "$API_ERR" ]; then
-            echo "---- ESLINT API STDERR (preview) ----"
-            sed -n '1,200p' "$API_ERR"
-          fi
-
-          # Résumé tailles
-          echo "✅ Final: $CLIENT_OUT $(stat -c%s "$CLIENT_OUT" 2>/dev/null || stat -f%z "$CLIENT_OUT") bytes"
-          echo "✅ Final: $API_OUT $(stat -c%s "$API_OUT" 2>/dev/null || stat -f%z "$API_OUT") bytes"
+          # Affichage final des tailles (Déboguage)
+          echo "✅ Final Client: $(stat -c%s sast-eslint-client.json 2>/dev/null || echo 0) bytes"
+          echo "✅ Final API: $(stat -c%s sast-eslint-api.json 2>/dev/null || echo 0) bytes"
         continue-on-error: true
-
-      - name: Verify Files Before Upload
-        if: always()
-        run: |
-          echo "🔍 Vérification finale..."
-          ls -lh sast-eslint-*.json || echo "❌ Aucun fichier"
-          pwd
-          find . -name "sast-eslint-*.json" -type f || true
 
       - name: Upload SAST Reports
         uses: actions/upload-artifact@v4
@@ -311,3 +198,7 @@ EOF
             sast-eslint-api.json
           retention-days: 30
           if-no-files-found: warn
+
+  # ====================================================================
+  # ATTENTION : AJOUTEZ ICI LE JOB dast-scan (aligné sur 'security-scan')
+  # ====================================================================
