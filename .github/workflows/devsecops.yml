@@ -228,7 +228,6 @@ jobs:
     needs: security-scan    
     timeout-minutes: 20    
   
-    # ✅ Permissions nécessaires pour uploader les artefacts  
     permissions:    
       contents: read    
       actions: write    
@@ -239,7 +238,6 @@ jobs:
       - name: Checkout code    
         uses: actions/checkout@v4    
           
-      # ✅ Vérification de l'accessibilité de la cible  
       - name: Verify Target Accessibility    
         run: |    
           echo "Testing target: ${{ secrets.ZAP_TARGET_URL }}"    
@@ -250,18 +248,16 @@ jobs:
           fi    
         continue-on-error: true    
           
-      # ✅ Scan OWASP ZAP avec désactivation de l'upload automatique  
       - name: DAST - OWASP ZAP Baseline Scan    
         uses: zaproxy/action-baseline@v0.10.0    
         with:    
           target: ${{ secrets.ZAP_TARGET_URL }}    
           rules_file_name: '.zap/rules.tsv'    
-          cmd_options: '-a'  
-          allow_issue_writing: false  # ✅ CRUCIAL: Désactive la création d'issues  
-          artifact_name: ''            # ✅ CRUCIAL: Désactive l'upload automatique ZAP  
+          cmd_options: '-a'    
+          allow_issue_writing: false  
+          artifact_name: 'zap-scan-results'  # ✅ Nom différent de 'dast-reports'  
         continue-on-error: true    
           
-      # ✅ Upload manuel des rapports DAST  
       - name: Upload DAST Reports    
         uses: actions/upload-artifact@v4    
         if: always()    
