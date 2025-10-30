@@ -118,105 +118,65 @@ jobs:
         run: |
           set -euo pipefail
           
-          echo "📂 Contenu du workspace:"
-          ls -la
-          echo ""
-          echo "📂 Structure des répertoires:"
-          find . -type d -name "src" 2>/dev/null || echo "Aucun dossier src trouvé"
-          echo ""
-          
           TEMP_INSTALL_DIR="/tmp/eslint-tools"
           mkdir -p "$TEMP_INSTALL_DIR"
           cd "$TEMP_INSTALL_DIR"
           
-          echo "🔧 Installation locale isolée d'ESLint & plugins"
-          npm init -y
-          npm install eslint@8.57.0 eslint-plugin-security eslint-plugin-no-secrets --force || true
+          echo "🔧 Installation ESLint & plugins..."
+          npm init -y > /dev/null 2>&1
+          npm install eslint@8.57.0 eslint-plugin-security eslint-plugin-no-secrets --force > /dev/null 2>&1
           
           export PATH="$TEMP_INSTALL_DIR/node_modules/.bin:$PATH"
           export NODE_PATH="$TEMP_INSTALL_DIR/node_modules${NODE_PATH:+:$NODE_PATH}"
           
-          echo "✅ ESLint installé à: $(which eslint)"
-          echo "✅ NODE_PATH configuré: $NODE_PATH"
-          
           cd $GITHUB_WORKSPACE
           
-          echo '{
-  "env": {"browser": true, "es2021": true, "node": true},
-  "parserOptions": {
-    "ecmaVersion": 2021,
-    "sourceType": "module",
-    "ecmaFeatures": {"jsx": true}
-  },
-  "plugins": ["security", "no-secrets"],
-  "extends": ["plugin:security/recommended"],
-  "rules": {
-    "no-secrets/no-secrets": "warn",
-    "security/detect-eval-with-expression": "error",
-    "security/detect-unsafe-regex": "error",
-    "security/detect-non-literal-fs-filename": "warn"
-  }
-}' > .eslintrc.security.json
-
+          # Créer config ESLint
+          cat > .eslintrc.json << 'EOF'
+          {
+            "env": {"browser": true, "es2021": true, "node": true},
+            "parserOptions": {"ecmaVersion": 2021, "sourceType": "module", "ecmaFeatures": {"jsx": true}},
+            "plugins": ["security", "no-secrets"],
+            "extends": ["plugin:security/recommended"],
+            "rules": {
+              "no-secrets/no-secrets": "warn",
+              "security/detect-eval-with-expression": "error",
+              "security/detect-unsafe-regex": "error",
+              "security/detect-non-literal-fs-filename": "warn"
+            }
+          }
+          EOF
+          
           echo '[]' > sast-eslint-client.json
           echo '[]' > sast-eslint-api.json
           
-          run_eslint_scan() {
-            dir=$1
-            out=$2
-            echo ""
-            echo "=========================================="
-            echo "🔍 Scan de: $dir"
-            echo "=========================================="
-            
-            if [ -d "$dir" ]; then
-              echo "✅ Répertoire existe"
-              echo "📁 Contenu de $dir:"
-              ls -la "$dir" || true
-              
-              echo ""
-              echo "🔎 Recherche de fichiers JS/JSX..."
-              find "$dir" -type f \( -name "*.js" -o -name "*.jsx" \) -print > /tmp/files_to_scan.txt
-              
-              echo "📊 Nombre de fichiers trouvés: $(wc -l < /tmp/files_to_scan.txt)"
-              
-              if [ -s /tmp/files_to_scan.txt ]; then
-                echo "📄 Liste des fichiers:"
-                cat /tmp/files_to_scan.txt
-                
-                echo ""
-                echo "🚀 Lancement d'ESLint..."
-                NODE_PATH="$TEMP_INSTALL_DIR/node_modules" xargs -a /tmp/files_to_scan.txt \
-                  eslint \
-                  --config .eslintrc.security.json \
-                  --format json \
-                  --output-file "$out" 2>&1 || true
-                
-                echo "📝 Taille du rapport: $(stat -c%s "$out" 2>/dev/null || echo 0) bytes"
-                echo "📄 Contenu du rapport:"
-                head -c 500 "$out" 2>/dev/null || echo "Fichier vide ou introuvable"
-              else
-                echo "⚠️ Aucun fichier JS/JSX trouvé dans $dir"
-                echo '[]' > "$out"
-              fi
-            else
-              echo "❌ Répertoire $dir introuvable"
-              echo '[]' > "$out"
+          # Scan client
+          echo "🔍 Scan client/src..."
+          if [ -d "client/src" ]; then
+            find client/src -type f \( -name "*.js" -o -name "*.jsx" \) > /tmp/client-files.txt
+            if [ -s /tmp/client-files.txt ]; then
+              xargs -a /tmp/client-files.txt eslint --config .eslintrc.json --format json -o sast-eslint-client.json 2>&1 || true
             fi
-
-            if ! jq -e . "$out" >/dev/null 2>&1; then
-              echo "⚠️ $out n'est pas un JSON valide. Réinitialisation."
-              echo '[]' > "$out"
+          fi
+          
+          # Scan api
+          echo "🔍 Scan api/src..."
+          if [ -d "api/src" ]; then
+            find api/src -type f -name "*.js" > /tmp/api-files.txt
+            if [ -s /tmp/api-files.txt ]; then
+              xargs -a /tmp/api-files.txt eslint --config .eslintrc.json --format json -o sast-eslint-api.json 2>&1 || true
             fi
-            
-            echo "✅ Rapport final: $out ($(stat -c%s "$out" 2>/dev/null || echo 0) bytes)"
-          }
-
-          run_eslint_scan client/src sast-eslint-client.json
-          run_eslint_scan api/src sast-eslint-api.json
-
-          echo "✅ Final Client: $(stat -c%s sast-eslint-client.json 2>/dev/null || echo 0) bytes"
-          echo "✅ Final API: $(stat -c%s sast-eslint-api.json 2>/dev/null || echo 0) bytes"
+          fi
+          
+          # Valider JSON
+          for f in sast-eslint-client.json sast-eslint-api.json; do
+            if ! jq empty "$f" 2>/dev/null; then
+              echo '[]' > "$f"
+            fi
+          done
+          
+          echo "✅ Rapports générés:"
+          ls -lh sast-eslint-*.json
         continue-on-error: true
 
       - name: Upload SAST Reports
