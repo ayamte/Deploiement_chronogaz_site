@@ -178,7 +178,7 @@ jobs:
           # Installation GLOBALE  
           npm install -g eslint@8.57.0 eslint-plugin-security eslint-plugin-no-secrets  
             
-          # Créer config ESLint avec echo (évite problème here-document)  
+          # Créer config ESLint avec echo  
           echo '{' > .eslintrc.security.json  
           echo '  "env": {"browser": true, "es2021": true, "node": true},' >> .eslintrc.security.json  
           echo '  "parserOptions": {' >> .eslintrc.security.json  
@@ -217,7 +217,7 @@ jobs:
           echo '[]' > sast-eslint-client.json  
           echo '[]' > sast-eslint-api.json  
             
-          # Scanner Client  
+          # Scanner Client - CORRECTION CRITIQUE  
           echo ""  
           echo "🔍 Scan SAST Client..."  
           find client/src -type f \( -name "*.js" -o -name "*.jsx" \) ! -path "*/node_modules/*" > /tmp/client-files.txt  
@@ -226,13 +226,16 @@ jobs:
             echo "Fichiers trouvés:"  
             head -5 /tmp/client-files.txt  
               
-            cat /tmp/client-files.txt | xargs eslint \  
+            # ✅ CORRECTION: Utiliser xargs avec -r (ignore si vide) et -d '\n' (délimiteur newline)  
+            cat /tmp/client-files.txt | xargs -r -d '\n' eslint \  
               --config .eslintrc.security.json \  
               --format json \  
               --output-file sast-eslint-client.json 2>&1 || echo "⚠️ Scan terminé"  
+          else  
+            echo "⚠️ Aucun fichier trouvé"  
           fi  
             
-          # Scanner API  
+          # Scanner API - CORRECTION CRITIQUE  
           echo ""  
           echo "🔍 Scan SAST API..."  
           find api/src -type f -name "*.js" ! -path "*/node_modules/*" ! -path "*/coverage/*" > /tmp/api-files.txt  
@@ -241,10 +244,13 @@ jobs:
             echo "Fichiers trouvés:"  
             head -5 /tmp/api-files.txt  
               
-            cat /tmp/api-files.txt | xargs eslint \  
+            # ✅ CORRECTION: Utiliser xargs avec -r et -d '\n'  
+            cat /tmp/api-files.txt | xargs -r -d '\n' eslint \  
               --config .eslintrc.security.json \  
               --format json \  
               --output-file sast-eslint-api.json 2>&1 || echo "⚠️ Scan terminé"  
+          else  
+            echo "⚠️ Aucun fichier trouvé"  
           fi  
             
           # Vérification finale  
@@ -253,7 +259,8 @@ jobs:
           for file in sast-eslint-client.json sast-eslint-api.json; do  
             if [ -f "$file" ]; then  
               SIZE=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null)  
-              echo "✅ $file: $SIZE bytes"  
+              ISSUES=$(cat "$file" | jq '[.[].messages[]] | length' 2>/dev/null || echo "0")  
+              echo "✅ $file: $SIZE bytes, $ISSUES problèmes détectés"  
             else  
               echo "❌ $file: MANQUANT"  
               echo '[]' > "$file"  
