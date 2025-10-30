@@ -7,6 +7,13 @@ on:
     branches: [main]
   workflow_dispatch:
 
+#Permissions pour le workflow  
+permissions:  
+  contents: read  
+  actions: write  
+  security-events: write  
+  
+
 jobs:
   security-scan:
     runs-on: ubuntu-latest
