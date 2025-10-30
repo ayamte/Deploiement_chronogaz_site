@@ -250,17 +250,18 @@ jobs:
           fi    
         continue-on-error: true    
           
-      # ✅ Scan OWASP ZAP avec désactivation de la création d'issues  
+      # ✅ Scan OWASP ZAP avec désactivation de l'upload automatique  
       - name: DAST - OWASP ZAP Baseline Scan    
         uses: zaproxy/action-baseline@v0.10.0    
         with:    
           target: ${{ secrets.ZAP_TARGET_URL }}    
           rules_file_name: '.zap/rules.tsv'    
           cmd_options: '-a'  
-          allow_issue_writing: false  # ✅ CRITIQUE : Désactive la création d'issues GitHub  
+          allow_issue_writing: false  # ✅ CRUCIAL: Désactive la création d'issues  
+          artifact_name: ''            # ✅ CRUCIAL: Désactive l'upload automatique ZAP  
         continue-on-error: true    
           
-      # ✅ Upload des rapports DAST  
+      # ✅ Upload manuel des rapports DAST  
       - name: Upload DAST Reports    
         uses: actions/upload-artifact@v4    
         if: always()    
