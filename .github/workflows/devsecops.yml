@@ -139,7 +139,7 @@ jobs:
           
           cd $GITHUB_WORKSPACE
           
-          cat > .eslintrc.security.json <<'EOF'
+          cat > .eslintrc.security.json <<EOF
           {
             "env": {"browser": true, "es2021": true, "node": true},
             "parserOptions": {
@@ -154,7 +154,8 @@ jobs:
               "security/detect-eval-with-expression": "error",
               "security/detect-unsafe-regex": "error",
               "security/detect-non-literal-fs-filename": "warn"
-            }
+            },
+            "resolvePluginsRelativeTo": "$TEMP_INSTALL_DIR/node_modules"
           }
           EOF
 
@@ -187,8 +188,12 @@ jobs:
                 
                 echo ""
                 echo "🚀 Lancement d'ESLint..."
-                # Scanner avec ESLint - lire les fichiers ligne par ligne
-                xargs -a /tmp/files_to_scan.txt eslint --config .eslintrc.security.json --format json --output-file "$out" 2>&1 || true
+                # Scanner avec ESLint - spécifier le resolve-plugins-relative-to
+                xargs -a /tmp/files_to_scan.txt eslint \
+                  --config .eslintrc.security.json \
+                  --resolve-plugins-relative-to "$TEMP_INSTALL_DIR" \
+                  --format json \
+                  --output-file "$out" 2>&1 || true
                 
                 echo "📝 Taille du rapport: $(stat -c%s "$out" 2>/dev/null || echo 0) bytes"
                 echo "📄 Contenu du rapport:"
