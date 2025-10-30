@@ -25,7 +25,6 @@ jobs:
             client/package-lock.json
             api/package-lock.json
 
-      # ✅ AJOUT : Installation de jq pour validation
       - name: Install validation tools
         run: |
           sudo apt-get update
@@ -81,10 +80,9 @@ jobs:
           mv package.json.backup package.json
         continue-on-error: true
 
-      # ✅ CORRECTION : Ajout du timeout
       - name: SCA - OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
-        timeout-minutes: 30  # ⚠️ IMPORTANT pour éviter timeouts
+        timeout-minutes: 30
         with:
           project: 'ChronoGaz'
           path: '.'
@@ -111,11 +109,21 @@ jobs:
 
       - name: SAST - ESLint Security Plugin
         run: |
-          npm install -g eslint eslint-plugin-security eslint-plugin-no-secrets
+          # ⚠️ IMPORTANT: Installer ESLint 8 (pas 9!)
+          npm install -g eslint@8.57.0 eslint-plugin-security eslint-plugin-no-secrets
 
           # Configuration ESLint
           cat > .eslintrc.security.json << 'EOF'
           {
+            "env": {
+              "browser": true,
+              "es2021": true,
+              "node": true
+            },
+            "parserOptions": {
+              "ecmaVersion": 2021,
+              "sourceType": "module"
+            },
             "plugins": ["security", "no-secrets"],
             "extends": ["plugin:security/recommended"],
             "rules": {
@@ -125,16 +133,35 @@ jobs:
           }
           EOF
 
+          # Créer les fichiers vides pour garantir leur existence
+          echo '[]' > sast-eslint-client.json
+          echo '[]' > sast-eslint-api.json
+
           # Scanner Client
-          eslint client/src --config .eslintrc.security.json \
-            --format json --output-file sast-eslint-client.json || true
+          if [ -d "client/src" ]; then
+            echo "=== Scanning client/src ==="
+            eslint "client/src/**/*.{js,jsx,ts,tsx}" --config .eslintrc.security.json \
+              --format json --output-file sast-eslint-client.json || echo "Client scan completed with warnings"
+          elif [ -d "client" ]; then
+            echo "=== Scanning client/ ==="
+            eslint "client/**/*.{js,jsx,ts,tsx}" --config .eslintrc.security.json \
+              --format json --output-file sast-eslint-client.json || echo "Client scan completed with warnings"
+          fi
 
           # Scanner API
-          eslint api/src --config .eslintrc.security.json \
-            --format json --output-file sast-eslint-api.json || true
+          if [ -d "api/src" ]; then
+            echo "=== Scanning api/src ==="
+            eslint "api/src/**/*.{js,jsx,ts,tsx}" --config .eslintrc.security.json \
+              --format json --output-file sast-eslint-api.json || echo "API scan completed with warnings"
+          elif [ -d "api" ]; then
+            echo "=== Scanning api/ ==="
+            eslint "api/**/*.{js,jsx,ts,tsx}" --config .eslintrc.security.json \
+              --format json --output-file sast-eslint-api.json || echo "API scan completed with warnings"
+          fi
 
-          # Verify files were created
-          ls -la sast-eslint-*.json || echo "No SAST reports generated"
+          # Vérification
+          echo "=== Files created ==="
+          ls -lh sast-eslint-*.json
         continue-on-error: true
 
       - name: Debug - List files
@@ -146,6 +173,10 @@ jobs:
           ls -la
           echo "Searching for SAST files:"
           find . -name "sast-eslint-*.json" -type f
+          echo "=== Content of client report ==="
+          cat sast-eslint-client.json | head -20 || echo "File not found"
+          echo "=== Content of API report ==="
+          cat sast-eslint-api.json | head -20 || echo "File not found"
 
       - name: Upload SAST Reports
         uses: actions/upload-artifact@v4
