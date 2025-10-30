@@ -145,7 +145,11 @@ jobs:
           if [ -d "client/src" ]; then
             find client/src -type f \( -name "*.js" -o -name "*.jsx" \) > /tmp/client-files.txt
             if [ -s /tmp/client-files.txt ]; then
-              xargs -a /tmp/client-files.txt eslint --config .eslintrc.json --format json -o sast-eslint-client.json 2>&1 || true
+              xargs -a /tmp/client-files.txt eslint \
+                --config .eslintrc.json \
+                --resolve-plugins-relative-to "$TEMP_INSTALL_DIR" \
+                --format json \
+                -o sast-eslint-client.json 2>&1 || true
             fi
           fi
           
@@ -154,7 +158,11 @@ jobs:
           if [ -d "api/src" ]; then
             find api/src -type f -name "*.js" > /tmp/api-files.txt
             if [ -s /tmp/api-files.txt ]; then
-              xargs -a /tmp/api-files.txt eslint --config .eslintrc.json --format json -o sast-eslint-api.json 2>&1 || true
+              xargs -a /tmp/api-files.txt eslint \
+                --config .eslintrc.json \
+                --resolve-plugins-relative-to "$TEMP_INSTALL_DIR" \
+                --format json \
+                -o sast-eslint-api.json 2>&1 || true
             fi
           fi
           
