@@ -131,23 +131,23 @@ jobs:
           cd $GITHUB_WORKSPACE
           
           cat > .eslintrc.security.json <<'EOF'
-{
-  "env": {"browser": true, "es2021": true, "node": true},
-  "parserOptions": {
-    "ecmaVersion": 2021,
-    "sourceType": "module",
-    "ecmaFeatures": {"jsx": true}
-  },
-  "plugins": ["security", "no-secrets"],
-  "extends": ["plugin:security/recommended"],
-  "rules": {
-    "no-secrets/no-secrets": "warn",
-    "security/detect-eval-with-expression": "error",
-    "security/detect-unsafe-regex": "error",
-    "security/detect-non-literal-fs-filename": "warn"
-  }
-}
-EOF
+          {
+            "env": {"browser": true, "es2021": true, "node": true},
+            "parserOptions": {
+              "ecmaVersion": 2021,
+              "sourceType": "module",
+              "ecmaFeatures": {"jsx": true}
+            },
+            "plugins": ["security", "no-secrets"],
+            "extends": ["plugin:security/recommended"],
+            "rules": {
+              "no-secrets/no-secrets": "warn",
+              "security/detect-eval-with-expression": "error",
+              "security/detect-unsafe-regex": "error",
+              "security/detect-non-literal-fs-filename": "warn"
+            }
+          }
+          EOF
 
           echo '[]' > sast-eslint-client.json
           echo '[]' > sast-eslint-api.json
@@ -184,4 +184,6 @@ EOF
           retention-days: 30
           if-no-files-found: warn
 
-  
+  # ====================================================================
+  # Job DAST - Ajoutez votre job dast-scan ici
+  # ====================================================================
