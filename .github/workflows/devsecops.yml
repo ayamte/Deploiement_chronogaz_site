@@ -206,4 +206,46 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
-  
+ # ====================================================================  
+  # Job DAST - Dynamic Application Security Testing  
+  # ====================================================================  
+    
+  dast-scan:  
+    runs-on: ubuntu-latest  
+    name: Dynamic Security Analysis (DAST)  
+    needs: security-scan  
+    timeout-minutes: 20  
+      
+    steps:  
+      - name: Checkout code  
+        uses: actions/checkout@v4  
+        
+      - name: Verify Target Accessibility  
+        run: |  
+          echo "Testing target: ${{ secrets.ZAP_TARGET_URL }}"  
+          if curl -f -s -o /dev/null "${{ secrets.ZAP_TARGET_URL }}/api/health"; then  
+            echo "✅ Target is accessible"  
+          else  
+            echo "⚠️ Warning: Target may not be accessible"  
+          fi  
+        continue-on-error: true  
+        
+      - name: DAST - OWASP ZAP Baseline Scan  
+        uses: zaproxy/action-baseline@v0.10.0  
+        with:  
+          target: ${{ secrets.ZAP_TARGET_URL }}  
+          rules_file_name: '.zap/rules.tsv'  
+          cmd_options: '-a'  
+        continue-on-error: true  
+        
+      - name: Upload DAST Reports  
+        uses: actions/upload-artifact@v4  
+        if: always()  
+        with:  
+          name: dast-reports  
+          path: |  
+            report_html.html  
+            report_json.json  
+            report_md.md  
+          retention-days: 30  
+          if-no-files-found: warn
