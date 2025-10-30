@@ -206,34 +206,4 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
-  # ====================================================================
-  # Job DAST - Dynamic Application Security Testing
-  # ====================================================================
   
-  dast-scan:
-    runs-on: ubuntu-latest
-    name: Dynamic Security Analysis (DAST)
-    needs: security-scan
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: DAST - OWASP ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.10.0
-        with:
-          target: 'https://votre-app.com'  # Remplacez par votre URL
-          rules_file_name: '.zap/rules.tsv'
-          cmd_options: '-a'
-        continue-on-error: true
-      
-      - name: Upload DAST Reports
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: dast-reports
-          path: |
-            report_html.html
-            report_json.json
-          retention-days: 30
-          if-no-files-found: warn
