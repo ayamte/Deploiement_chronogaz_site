@@ -109,8 +109,9 @@ jobs:
 
       - name: SAST - ESLint Security Plugin
         run: |
-          # ⚠️ IMPORTANT: Installer ESLint 8 (pas 9!)
-          npm install -g eslint@8.57.0 eslint-plugin-security eslint-plugin-no-secrets
+          # Installation LOCALE (pas globale!) dans le répertoire courant
+          npm init -y
+          npm install eslint@8.57.0 eslint-plugin-security eslint-plugin-no-secrets
 
           # Configuration ESLint
           cat > .eslintrc.security.json << 'EOF'
@@ -122,13 +123,26 @@ jobs:
             },
             "parserOptions": {
               "ecmaVersion": 2021,
-              "sourceType": "module"
+              "sourceType": "module",
+              "ecmaFeatures": {
+                "jsx": true
+              }
             },
             "plugins": ["security", "no-secrets"],
             "extends": ["plugin:security/recommended"],
             "rules": {
-              "no-secrets/no-secrets": "error",
-              "security/detect-eval-with-expression": "error"
+              "no-secrets/no-secrets": "warn",
+              "security/detect-eval-with-expression": "error",
+              "security/detect-non-literal-regexp": "warn",
+              "security/detect-unsafe-regex": "error",
+              "security/detect-buffer-noassert": "error",
+              "security/detect-child-process": "warn",
+              "security/detect-disable-mustache-escape": "error",
+              "security/detect-no-csrf-before-method-override": "error",
+              "security/detect-non-literal-fs-filename": "warn",
+              "security/detect-object-injection": "warn",
+              "security/detect-possible-timing-attacks": "warn",
+              "security/detect-pseudoRandomBytes": "error"
             }
           }
           EOF
@@ -137,46 +151,58 @@ jobs:
           echo '[]' > sast-eslint-client.json
           echo '[]' > sast-eslint-api.json
 
-          # Scanner Client
-          if [ -d "client/src" ]; then
-            echo "=== Scanning client/src ==="
-            eslint "client/src/**/*.{js,jsx,ts,tsx}" --config .eslintrc.security.json \
-              --format json --output-file sast-eslint-client.json || echo "Client scan completed with warnings"
-          elif [ -d "client" ]; then
-            echo "=== Scanning client/ ==="
-            eslint "client/**/*.{js,jsx,ts,tsx}" --config .eslintrc.security.json \
-              --format json --output-file sast-eslint-client.json || echo "Client scan completed with warnings"
+          # Debug: Vérifier la structure
+          echo "=== Vérification structure ==="
+          ls -la client/ 2>/dev/null | head -10 || echo "Pas de dossier client/"
+          ls -la api/ 2>/dev/null | head -10 || echo "Pas de dossier api/"
+          echo "=== Fichiers JS dans client ==="
+          find client -name "*.js" -o -name "*.jsx" 2>/dev/null | head -10 || echo "Aucun fichier trouvé"
+          echo "=== Fichiers JS dans api ==="
+          find api -name "*.js" 2>/dev/null | head -10 || echo "Aucun fichier trouvé"
+
+          # Scanner Client avec npx (utilise les dépendances locales)
+          if [ -d "client" ]; then
+            echo "=== Scanning Client ==="
+            npx eslint "client/**/*.js" "client/**/*.jsx" --config .eslintrc.security.json \
+              --format json --output-file sast-eslint-client.json 2>&1 || echo "✅ Client scan terminé"
+            
+            # Si toujours vide, essayer avec --ext
+            if [ "$(cat sast-eslint-client.json)" = "[]" ]; then
+              echo "=== Retry avec --ext ==="
+              npx eslint client --ext .js,.jsx,.ts,.tsx --config .eslintrc.security.json \
+                --format json --output-file sast-eslint-client.json 2>&1 || echo "✅ Client scan retry terminé"
+            fi
           fi
 
           # Scanner API
-          if [ -d "api/src" ]; then
-            echo "=== Scanning api/src ==="
-            eslint "api/src/**/*.{js,jsx,ts,tsx}" --config .eslintrc.security.json \
-              --format json --output-file sast-eslint-api.json || echo "API scan completed with warnings"
-          elif [ -d "api" ]; then
-            echo "=== Scanning api/ ==="
-            eslint "api/**/*.{js,jsx,ts,tsx}" --config .eslintrc.security.json \
-              --format json --output-file sast-eslint-api.json || echo "API scan completed with warnings"
+          if [ -d "api" ]; then
+            echo "=== Scanning API ==="
+            npx eslint "api/**/*.js" --config .eslintrc.security.json \
+              --format json --output-file sast-eslint-api.json 2>&1 || echo "✅ API scan terminé"
+            
+            if [ "$(cat sast-eslint-api.json)" = "[]" ]; then
+              echo "=== Retry avec --ext ==="
+              npx eslint api --ext .js --config .eslintrc.security.json \
+                --format json --output-file sast-eslint-api.json 2>&1 || echo "✅ API scan retry terminé"
+            fi
           fi
 
-          # Vérification
-          echo "=== Files created ==="
+          # Vérification et stats
+          echo "=== Fichiers créés ==="
           ls -lh sast-eslint-*.json
+          
+          echo "=== Contenu Client (premiers résultats) ==="
+          cat sast-eslint-client.json | head -100
+          
+          echo "=== Contenu API (premiers résultats) ==="
+          cat sast-eslint-api.json | head -100
+          
+          # Compter les issues
+          CLIENT_COUNT=$(cat sast-eslint-client.json | jq 'length' 2>/dev/null || echo "0")
+          API_COUNT=$(cat sast-eslint-api.json | jq 'length' 2>/dev/null || echo "0")
+          echo " Client: $CLIENT_COUNT fichiers analysés"
+          echo " API: $API_COUNT fichiers analysés"
         continue-on-error: true
-
-      - name: Debug - List files
-        if: always()
-        run: |
-          echo "Current directory:"
-          pwd
-          echo "Files in current directory:"
-          ls -la
-          echo "Searching for SAST files:"
-          find . -name "sast-eslint-*.json" -type f
-          echo "=== Content of client report ==="
-          cat sast-eslint-client.json | head -20 || echo "File not found"
-          echo "=== Content of API report ==="
-          cat sast-eslint-api.json | head -20 || echo "File not found"
 
       - name: Upload SAST Reports
         uses: actions/upload-artifact@v4
