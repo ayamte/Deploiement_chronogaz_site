@@ -32,13 +32,11 @@ jobs:
 
       - name: Install Dependencies - Client
         working-directory: ./client
-        # Correction pour le conflit Redux : Ajout de --legacy-peer-deps
         run: npm ci --legacy-peer-deps
         continue-on-error: false
 
       - name: Install Dependencies - API
         working-directory: ./api
-        # Correction pour le conflit Redux : Ajout de --legacy-peer-deps
         run: npm ci --legacy-peer-deps
         continue-on-error: false
 
@@ -113,31 +111,25 @@ jobs:
           if-no-files-found: warn
 
       # ===================================
-      # SAST - Analyse Statique du Code (Solution Robuste)
+      # SAST - Analyse Statique du Code
       # ===================================
 
-      - name: SAST - ESLint Security Plugin (robuste et isolé)
+      - name: SAST - ESLint Security Plugin
         run: |
           set -euo pipefail
           
-          # --- Isolation de l'installation ---
           TEMP_INSTALL_DIR="/tmp/eslint-tools"
           mkdir -p "$TEMP_INSTALL_DIR"
           cd "$TEMP_INSTALL_DIR"
           
           echo "🔧 Installation locale isolée d'ESLint & plugins"
           npm init -y
-          # Utilisation de --force pour ignorer tous les conflits
           npm install eslint@8.57.0 eslint-plugin-security eslint-plugin-no-secrets --force || true
           
-          # Ajouter les binaires locaux au PATH
           export PATH="$TEMP_INSTALL_DIR/node_modules/.bin:$PATH"
           
-          # Revenir à la racine du dépôt pour le scan
-          cd $GITHUB_WORKSPACE 
-          # --- Fin du Bloc d'Isolation ---
+          cd $GITHUB_WORKSPACE
           
-          # Configuration ESLint
           cat > .eslintrc.security.json <<'EOF'
 {
   "env": {"browser": true, "es2021": true, "node": true},
@@ -157,18 +149,15 @@ jobs:
 }
 EOF
 
-          # Initialise fichiers (Garantie d'existence)
           echo '[]' > sast-eslint-client.json
           echo '[]' > sast-eslint-api.json
           
-          # Helper function: run eslint (simplify run_eslint_if_files)
           run_eslint_scan() {
             base=$1
             pattern=$2
             out=$3
             echo "🔍 Lancement ESLint sur $base"
             
-            # Utilisation de 'eslint' car il est maintenant dans le PATH
             eslint "$pattern" --config .eslintrc.security.json --format json --output-file "$out" 2>&1 || true
 
             if ! jq -e . "$out" >/dev/null 2>&1; then
@@ -177,13 +166,9 @@ EOF
             fi
           }
 
-          # Lancer scan client
           run_eslint_scan client/src 'client/src/**/*.{js,jsx}' sast-eslint-client.json
-          
-          # Lancer scan api
           run_eslint_scan api/src 'api/src/**/*.js' sast-eslint-api.json
 
-          # Affichage final des tailles (Déboguage)
           echo "✅ Final Client: $(stat -c%s sast-eslint-client.json 2>/dev/null || echo 0) bytes"
           echo "✅ Final API: $(stat -c%s sast-eslint-api.json 2>/dev/null || echo 0) bytes"
         continue-on-error: true
@@ -199,6 +184,4 @@ EOF
           retention-days: 30
           if-no-files-found: warn
 
-  # ====================================================================
-  # ATTENTION : AJOUTEZ ICI LE JOB dast-scan (aligné sur 'security-scan')
-  # ====================================================================
+  
