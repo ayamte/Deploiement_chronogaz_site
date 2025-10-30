@@ -218,52 +218,57 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
- # ====================================================================  
+  # ====================================================================  
   # Job DAST - Dynamic Application Security Testing  
   # ====================================================================  
     
-  dast-scan:  
-    runs-on: ubuntu-latest  
-    name: Dynamic Security Analysis (DAST)  
-    needs: security-scan  
-    timeout-minutes: 20  
-
-    permissions:  
-      contents: read  
-      actions: write  
-      security-events: write
-      id-token: write
-      
-    steps:  
-      - name: Checkout code  
-        uses: actions/checkout@v4  
+  dast-scan:    
+    runs-on: ubuntu-latest    
+    name: Dynamic Security Analysis (DAST)    
+    needs: security-scan    
+    timeout-minutes: 20    
+  
+    # ✅ Permissions nécessaires pour uploader les artefacts  
+    permissions:    
+      contents: read    
+      actions: write    
+      security-events: write  
+      id-token: write  
         
-      - name: Verify Target Accessibility  
-        run: |  
-          echo "Testing target: ${{ secrets.ZAP_TARGET_URL }}"  
-          if curl -f -s -o /dev/null "${{ secrets.ZAP_TARGET_URL }}/api/health"; then  
-            echo "✅ Target is accessible"  
-          else  
-            echo "⚠️ Warning: Target may not be accessible"  
-          fi  
-        continue-on-error: true  
-        
-      - name: DAST - OWASP ZAP Baseline Scan  
-        uses: zaproxy/action-baseline@v0.10.0  
-        with:  
-          target: ${{ secrets.ZAP_TARGET_URL }}  
-          rules_file_name: '.zap/rules.tsv'  
+    steps:    
+      - name: Checkout code    
+        uses: actions/checkout@v4    
+          
+      # ✅ Vérification de l'accessibilité de la cible  
+      - name: Verify Target Accessibility    
+        run: |    
+          echo "Testing target: ${{ secrets.ZAP_TARGET_URL }}"    
+          if curl -f -s -o /dev/null "${{ secrets.ZAP_TARGET_URL }}/api/health"; then    
+            echo "✅ Target is accessible"    
+          else    
+            echo "⚠️ Warning: Target may not be accessible"    
+          fi    
+        continue-on-error: true    
+          
+      # ✅ Scan OWASP ZAP avec désactivation de la création d'issues  
+      - name: DAST - OWASP ZAP Baseline Scan    
+        uses: zaproxy/action-baseline@v0.10.0    
+        with:    
+          target: ${{ secrets.ZAP_TARGET_URL }}    
+          rules_file_name: '.zap/rules.tsv'    
           cmd_options: '-a'  
-        continue-on-error: true  
-        
-      - name: Upload DAST Reports  
-        uses: actions/upload-artifact@v4  
-        if: always()  
-        with:  
-          name: dast-reports  
-          path: |  
-            report_html.html  
-            report_json.json  
-            report_md.md  
-          retention-days: 30  
+          allow_issue_writing: false  # ✅ CRITIQUE : Désactive la création d'issues GitHub  
+        continue-on-error: true    
+          
+      # ✅ Upload des rapports DAST  
+      - name: Upload DAST Reports    
+        uses: actions/upload-artifact@v4    
+        if: always()    
+        with:    
+          name: dast-reports    
+          path: |    
+            report_html.html    
+            report_json.json    
+            report_md.md    
+          retention-days: 30    
           if-no-files-found: warn
