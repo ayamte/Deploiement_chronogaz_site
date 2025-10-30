@@ -131,10 +131,10 @@ jobs:
         run: |  
           echo "🔧 Configuration SAST ESLint..."  
             
-          # ✅ Installation GLOBALE pour éviter conflits avec package.json racine  
+          # Installation GLOBALE  
           npm install -g eslint@8.57.0 eslint-plugin-security eslint-plugin-no-secrets  
-  
-          # Configuration ESLint optimisée  
+            
+          # Configuration ESLint (gardez votre config existante)  
           cat > .eslintrc.security.json << 'EOF'  
           {  
             "env": {  
@@ -167,171 +167,119 @@ jobs:
             }  
           }  
           EOF  
-  
-          # Initialiser les fichiers de sortie  
+            
+          # Créer fichiers vides AVEC CHEMIN ABSOLU  
+          touch sast-eslint-client.json  
+          touch sast-eslint-api.json  
           echo '[]' > sast-eslint-client.json  
           echo '[]' > sast-eslint-api.json  
-  
-          # Debug: Structure du projet  
+            
+          # Vérifier le répertoire de travail  
+          echo "📍 Répertoire actuel: $(pwd)"  
+          echo "📂 Contenu du répertoire:"  
+          ls -la  
+            
+          # Vérifier structure projet  
           echo ""  
-          echo "📂 Structure du projet:"  
-          echo "==================================="  
+          echo "🔍 Recherche de fichiers JS/JSX..."  
           if [ -d "client" ]; then  
-            echo "✓ Dossier client/ trouvé"  
-            CLIENT_JS=$(find client -type f \( -name "*.js" -o -name "*.jsx" \) 2>/dev/null | wc -l)  
-            echo "  → $CLIENT_JS fichiers JS/JSX détectés"  
-            if [ $CLIENT_JS -gt 0 ]; then  
-              echo "  → Exemples:"  
-              find client -type f \( -name "*.js" -o -name "*.jsx" \) 2>/dev/null | head -5 | sed 's/^/    /'  
+            CLIENT_COUNT=$(find client -type f \( -name "*.js" -o -name "*.jsx" \) 2>/dev/null | wc -l)  
+            echo "✓ Client: $CLIENT_COUNT fichiers trouvés"  
+            if [ $CLIENT_COUNT -gt 0 ]; then  
+              echo "  Exemples:"  
+              find client -type f \( -name "*.js" -o -name "*.jsx" \) 2>/dev/null | head -5  
             fi  
           else  
             echo "✗ Dossier client/ introuvable"  
           fi  
             
           if [ -d "api" ]; then  
-            echo "✓ Dossier api/ trouvé"  
-            API_JS=$(find api -type f -name "*.js" 2>/dev/null | wc -l)  
-            echo "  → $API_JS fichiers JS détectés"  
-            if [ $API_JS -gt 0 ]; then  
-              echo "  → Exemples:"  
-              find api -type f -name "*.js" 2>/dev/null | head -5 | sed 's/^/    /'  
+            API_COUNT=$(find api -type f -name "*.js" 2>/dev/null | wc -l)  
+            echo "✓ API: $API_COUNT fichiers trouvés"  
+            if [ $API_COUNT -gt 0 ]; then  
+              echo "  Exemples:"  
+              find api -type f -name "*.js" 2>/dev/null | head -5  
             fi  
           else  
             echo "✗ Dossier api/ introuvable"  
           fi  
-          echo "==================================="  
-          echo ""  
-  
-          # Scanner Client  
+            
+          # Scanner Client avec gestion d'erreur explicite  
           if [ -d "client" ]; then  
-            echo "🔍 Scan SAST Client en cours..."  
+            echo ""  
+            echo "🔍 Scan SAST Client..."  
               
-            # Méthode 1: Scanner avec pattern glob  
+            # Essayer plusieurs patterns  
             eslint "client/**/*.{js,jsx}" \  
               --config .eslintrc.security.json \  
               --format json \  
-              --output-file sast-eslint-client.json 2>&1 || true  
-              
-            # Vérifier si des résultats ont été trouvés  
-            RESULT_SIZE=$(stat -f%z "sast-eslint-client.json" 2>/dev/null || stat -c%s "sast-eslint-client.json" 2>/dev/null)  
-              
-            # Méthode 2: Fallback avec --ext si résultat vide ou minimal  
-            if [ "$RESULT_SIZE" -lt 10 ]; then  
-              echo "  ⚠️  Aucun résultat, tentative avec --ext..."  
-              eslint client \  
-                --ext .js,.jsx \  
-                --config .eslintrc.security.json \  
-                --format json \  
-                --output-file sast-eslint-client.json 2>&1 || true  
-            fi  
-              
-            # Méthode 3: Fallback sur /src si présent  
-            if [ -d "client/src" ] && [ "$RESULT_SIZE" -lt 10 ]; then  
-              echo "  ⚠️  Tentative sur client/src/..."  
-              eslint client/src \  
-                --ext .js,.jsx \  
-                --config .eslintrc.security.json \  
-                --format json \  
-                --output-file sast-eslint-client.json 2>&1 || true  
-            fi  
-              
-            echo "  ✅ Scan Client terminé"  
-          else  
-            echo "  ⚠️  Dossier client/ introuvable, scan ignoré"  
+              --output-file sast-eslint-client.json 2>&1 || \  
+            eslint client/src \  
+              --ext .js,.jsx \  
+              --config .eslintrc.security.json \  
+              --format json \  
+              --output-file sast-eslint-client.json 2>&1 || \  
+            eslint client \  
+              --ext .js,.jsx \  
+              --config .eslintrc.security.json \  
+              --format json \  
+              --output-file sast-eslint-client.json 2>&1 || \  
+            echo "⚠️ Aucun fichier scanné pour client"  
           fi  
-  
+            
           # Scanner API  
           if [ -d "api" ]; then  
-            echo "🔍 Scan SAST API en cours..."  
+            echo ""  
+            echo "🔍 Scan SAST API..."  
               
-            # Méthode 1: Scanner avec pattern glob  
             eslint "api/**/*.js" \  
               --config .eslintrc.security.json \  
               --format json \  
-              --output-file sast-eslint-api.json 2>&1 || true  
-              
-            RESULT_SIZE=$(stat -f%z "sast-eslint-api.json" 2>/dev/null || stat -c%s "sast-eslint-api.json" 2>/dev/null)  
-              
-            # Méthode 2: Fallback avec --ext  
-            if [ "$RESULT_SIZE" -lt 10 ]; then  
-              echo "  ⚠️  Aucun résultat, tentative avec --ext..."  
-              eslint api \  
-                --ext .js \  
-                --config .eslintrc.security.json \  
-                --format json \  
-                --output-file sast-eslint-api.json 2>&1 || true  
+              --output-file sast-eslint-api.json 2>&1 || \  
+            eslint api/src \  
+              --ext .js \  
+              --config .eslintrc.security.json \  
+              --format json \  
+              --output-file sast-eslint-api.json 2>&1 || \  
+            eslint api \  
+              --ext .js \  
+              --config .eslintrc.security.json \  
+              --format json \  
+              --output-file sast-eslint-api.json 2>&1 || \  
+            echo "⚠️ Aucun fichier scanné pour api"  
+          fi  
+            
+          # VÉRIFICATION CRITIQUE avant upload  
+          echo ""  
+          echo "🔍 Vérification des fichiers générés:"  
+          for file in sast-eslint-client.json sast-eslint-api.json; do  
+            if [ -f "$file" ]; then  
+              SIZE=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null)  
+              echo "✅ $file existe ($SIZE bytes)"  
+              echo "   Contenu (premières lignes):"  
+              head -3 "$file"  
+            else  
+              echo "❌ $file MANQUANT - création forcée"  
+              echo '[]' > "$file"  
             fi  
-              
-            # Méthode 3: Fallback sur /src  
-            if [ -d "api/src" ] && [ "$RESULT_SIZE" -lt 10 ]; then  
-              echo "  ⚠️  Tentative sur api/src/..."  
-              eslint api/src \  
-                --ext .js \  
-                --config .eslintrc.security.json \  
-                --format json \  
-                --output-file sast-eslint-api.json 2>&1 || true  
-            fi  
-              
-            echo "  ✅ Scan API terminé"  
-          else  
-            echo "  ⚠️  Dossier api/ introuvable, scan ignoré"  
-          fi  
-  
-          # Analyse des résultats  
+          done  
+            
+          # Afficher le chemin absolu des fichiers  
           echo ""  
-          echo "📊 Résultats SAST:"  
-          echo "==================================="  
+          echo "📍 Chemins absolus des fichiers:"  
+          realpath sast-eslint-client.json 2>/dev/null || echo "$(pwd)/sast-eslint-client.json"  
+          realpath sast-eslint-api.json 2>/dev/null || echo "$(pwd)/sast-eslint-api.json"  
             
-          CLIENT_FILES=$(cat sast-eslint-client.json | jq 'length' 2>/dev/null || echo "0")  
-          API_FILES=$(cat sast-eslint-api.json | jq 'length' 2>/dev/null || echo "0")  
-          CLIENT_ISSUES=$(cat sast-eslint-client.json | jq '[.[].messages[]] | length' 2>/dev/null || echo "0")  
-          API_ISSUES=$(cat sast-eslint-api.json | jq '[.[].messages[]] | length' 2>/dev/null || echo "0")  
-            
-          echo "Client:"  
-          echo "  → $CLIENT_FILES fichiers analysés"  
-          echo "  → $CLIENT_ISSUES problèmes détectés"  
-            
-          echo "API:"  
-          echo "  → $API_FILES fichiers analysés"  
-          echo "  → $API_ISSUES problèmes détectés"  
-          echo "==================================="  
-            
-          # Afficher un aperçu des vulnérabilités  
-          if [ "$CLIENT_ISSUES" -gt 0 ]; then  
-            echo ""  
-            echo "🔴 Aperçu vulnérabilités Client (Top 5):"  
-            cat sast-eslint-client.json | jq -r '  
-              [.[].messages[] | {  
-                file: input_filename,  
-                rule: .ruleId,  
-                severity: (if .severity == 2 then "ERROR" elif .severity == 1 then "WARNING" else "INFO" end),  
-                line: .line,  
-                message: .message  
-              }] | unique_by(.rule) | .[0:5] | .[] |   
-              "  • [\(.severity)] \(.rule): \(.message[0:80])"  
-            ' 2>/dev/null || echo "  (Détails disponibles dans le rapport JSON)"  
-          fi  
-            
-          if [ "$API_ISSUES" -gt 0 ]; then  
-            echo ""  
-            echo "🔴 Aperçu vulnérabilités API (Top 5):"  
-            cat sast-eslint-api.json | jq -r '  
-              [.[].messages[] | {  
-                rule: .ruleId,  
-                severity: (if .severity == 2 then "ERROR" elif .severity == 1 then "WARNING" else "INFO" end),  
-                message: .message  
-              }] | unique_by(.rule) | .[0:5] | .[] |   
-              "  • [\(.severity)] \(.rule): \(.message[0:80])"  
-            ' 2>/dev/null || echo "  (Détails disponibles dans le rapport JSON)"  
-          fi  
-            
-          # Fichiers générés  
-          echo ""  
-          echo "📁 Fichiers générés:"  
-          ls -lh sast-eslint-*.json | awk '{print "  " $9 " (" $5 ")"}'  
-          echo ""  
         continue-on-error: true  
-  
+        
+      - name: Verify Files Before Upload  
+        if: always()  
+        run: |  
+          echo "🔍 Vérification finale avant upload..."  
+          ls -lh sast-eslint-*.json || echo "❌ Aucun fichier sast-eslint-*.json trouvé"  
+          pwd  
+          find . -name "sast-eslint-*.json" -type f  
+        
       - name: Upload SAST Reports  
         uses: actions/upload-artifact@v4  
         if: always()  
@@ -341,7 +289,7 @@ jobs:
             sast-eslint-client.json  
             sast-eslint-api.json  
           retention-days: 30  
-  
+          if-no-files-found: warn  # ✅ Ajout important
       # ===================================  
       # Génération du Rapport de Synthèse  
       # ===================================  
