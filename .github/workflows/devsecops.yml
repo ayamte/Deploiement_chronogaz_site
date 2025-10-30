@@ -326,3 +326,62 @@ jobs:
           name: unified-sast-report
           path: unified_sast_report.json
           retention-days: 30
+
+
+  # ====================================================================
+  # Job PARSING SCA - Parse SCA Reports
+  # ====================================================================
+  
+  parse-sca-reports:
+    runs-on: ubuntu-latest
+    name: Parse SCA Reports
+    needs: [security-scan]
+    if: always()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Download SCA Reports
+        uses: actions/download-artifact@v4
+        with:
+          name: sca-reports
+          path: ./reports/
+        continue-on-error: true
+      
+      - name: Run SCA Parser
+        run: |
+          echo "🔍 Parsing SCA Reports..."
+          python3 scripts/parsing/sca_parser.py \
+            -i ./reports/ \
+            -o ./unified_sca_report.json
+        continue-on-error: true
+      
+      - name: Display Summary
+        if: always()
+        run: |
+          if [ -f ./unified_sca_report.json ]; then
+            python3 << 'EOF'
+          import json
+          with open('./unified_sca_report.json') as f:
+              data = json.load(f)
+              summary = data['summary']
+              print(f"\n✅ SCA Parsing Complete!")
+              print(f"   Vulnerabilities: {summary['total_vulnerabilities']}")
+              print(f"   Vulnerable Packages: {summary['vulnerable_packages']}")
+              print(f"   Risk Score: {summary['risk_score']}/100")
+          EOF
+          fi
+      
+      - name: Upload Unified Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unified-sca-report
+          path: unified_sca_report.json
+          retention-days: 30
