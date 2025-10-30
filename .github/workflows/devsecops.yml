@@ -222,6 +222,11 @@ jobs:
     name: Dynamic Security Analysis (DAST)  
     needs: security-scan  
     timeout-minutes: 20  
+
+    permissions:  
+      contents: read  
+      actions: write  
+      security-events: write
       
     steps:  
       - name: Checkout code  
