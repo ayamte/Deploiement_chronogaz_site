@@ -385,3 +385,61 @@ jobs:
           name: unified-sca-report
           path: unified_sca_report.json
           retention-days: 30
+
+  # ====================================================================
+  # Job PARSING DAST - Parse DAST Reports
+  # ====================================================================
+  
+  parse-dast-reports:
+    runs-on: ubuntu-latest
+    name: Parse DAST Reports
+    needs: [dast-scan]
+    if: always()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Download DAST Reports
+        uses: actions/download-artifact@v4
+        with:
+          name: dast-reports
+          path: ./reports/
+        continue-on-error: true
+      
+      - name: Run DAST Parser
+        run: |
+          echo "🔍 Parsing DAST Reports..."
+          python3 scripts/parsing/dast_parser.py \
+            -i ./reports/ \
+            -o ./unified_dast_report.json
+        continue-on-error: true
+      
+      - name: Display Summary
+        if: always()
+        run: |
+          if [ -f ./unified_dast_report.json ]; then
+            python3 << 'EOF'
+          import json
+          with open('./unified_dast_report.json') as f:
+              data = json.load(f)
+              summary = data['summary']
+              print(f"\n✅ DAST Parsing Complete!")
+              print(f"   Alerts: {summary['total_alerts']}")
+              print(f"   Instances: {summary['total_instances']}")
+              print(f"   Risk Score: {summary['risk_score']}/100")
+          EOF
+          fi
+      
+      - name: Upload Unified Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unified-dast-report
+          path: unified_dast_report.json
+          retention-days: 30
