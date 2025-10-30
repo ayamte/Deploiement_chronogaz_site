@@ -178,107 +178,73 @@ jobs:
           # Installation GLOBALE  
           npm install -g eslint@8.57.0 eslint-plugin-security eslint-plugin-no-secrets  
             
-          # Configuration ESLint - ✅ HERE-DOCUMENT CORRECTEMENT FERMÉ  
-          cat > .eslintrc.security.json << 'EOF'  
-          {  
-            "env": {  
-              "browser": true,  
-              "es2021": true,  
-              "node": true  
-            },  
-            "parserOptions": {  
-              "ecmaVersion": 2021,  
-              "sourceType": "module",  
-              "ecmaFeatures": {  
-                "jsx": true  
-              }  
-            },  
-            "plugins": ["security", "no-secrets"],  
-            "extends": ["plugin:security/recommended"],  
-            "rules": {  
-              "no-secrets/no-secrets": "warn",  
-              "security/detect-eval-with-expression": "error",  
-              "security/detect-non-literal-regexp": "warn",  
-              "security/detect-unsafe-regex": "error",  
-              "security/detect-buffer-noassert": "error",  
-              "security/detect-child-process": "warn",  
-              "security/detect-disable-mustache-escape": "error",  
-              "security/detect-no-csrf-before-method-override": "error",  
-              "security/detect-non-literal-fs-filename": "warn",  
-              "security/detect-object-injection": "warn",  
-              "security/detect-possible-timing-attacks": "warn",  
-              "security/detect-pseudoRandomBytes": "error"  
-            }  
-          }  
-          EOF  
+          # Créer config ESLint avec echo (évite problème here-document)  
+          echo '{' > .eslintrc.security.json  
+          echo '  "env": {"browser": true, "es2021": true, "node": true},' >> .eslintrc.security.json  
+          echo '  "parserOptions": {' >> .eslintrc.security.json  
+          echo '    "ecmaVersion": 2021,' >> .eslintrc.security.json  
+          echo '    "sourceType": "module",' >> .eslintrc.security.json  
+          echo '    "ecmaFeatures": {"jsx": true}' >> .eslintrc.security.json  
+          echo '  },' >> .eslintrc.security.json  
+          echo '  "plugins": ["security", "no-secrets"],' >> .eslintrc.security.json  
+          echo '  "extends": ["plugin:security/recommended"],' >> .eslintrc.security.json  
+          echo '  "rules": {' >> .eslintrc.security.json  
+          echo '    "no-secrets/no-secrets": "warn",' >> .eslintrc.security.json  
+          echo '    "security/detect-eval-with-expression": "error",' >> .eslintrc.security.json  
+          echo '    "security/detect-non-literal-regexp": "warn",' >> .eslintrc.security.json  
+          echo '    "security/detect-unsafe-regex": "error",' >> .eslintrc.security.json  
+          echo '    "security/detect-buffer-noassert": "error",' >> .eslintrc.security.json  
+          echo '    "security/detect-child-process": "warn",' >> .eslintrc.security.json  
+          echo '    "security/detect-disable-mustache-escape": "error",' >> .eslintrc.security.json  
+          echo '    "security/detect-no-csrf-before-method-override": "error",' >> .eslintrc.security.json  
+          echo '    "security/detect-non-literal-fs-filename": "warn",' >> .eslintrc.security.json  
+          echo '    "security/detect-object-injection": "warn",' >> .eslintrc.security.json  
+          echo '    "security/detect-possible-timing-attacks": "warn",' >> .eslintrc.security.json  
+          echo '    "security/detect-pseudoRandomBytes": "error"' >> .eslintrc.security.json  
+          echo '  }' >> .eslintrc.security.json  
+          echo '}' >> .eslintrc.security.json  
             
-          # Vérifier que le fichier a été créé  
+          # Vérifier création  
           if [ ! -f ".eslintrc.security.json" ]; then  
-            echo "❌ ERREUR: .eslintrc.security.json n'a pas été créé"  
+            echo "❌ ERREUR: Config ESLint non créée"  
             exit 1  
           fi  
             
-          echo "✅ Configuration ESLint créée avec succès"  
+          echo "✅ Config créée:"  
+          cat .eslintrc.security.json  
             
           # Créer fichiers vides  
           echo '[]' > sast-eslint-client.json  
           echo '[]' > sast-eslint-api.json  
             
           # Scanner Client  
-          if [ -d "client" ]; then  
-            echo ""  
-            echo "🔍 Scan SAST Client..."  
+          echo ""  
+          echo "🔍 Scan SAST Client..."  
+          find client/src -type f \( -name "*.js" -o -name "*.jsx" \) ! -path "*/node_modules/*" > /tmp/client-files.txt  
+            
+          if [ -s /tmp/client-files.txt ]; then  
+            echo "Fichiers trouvés:"  
+            head -5 /tmp/client-files.txt  
               
-            CLIENT_JS_COUNT=$(find client -type f -name "*.js" ! -path "*/node_modules/*" ! -path "*/build/*" | wc -l)  
-            CLIENT_JSX_COUNT=$(find client -type f -name "*.jsx" ! -path "*/node_modules/*" ! -path "*/build/*" | wc -l)  
-              
-            echo "  Fichiers à scanner: $CLIENT_JS_COUNT .js + $CLIENT_JSX_COUNT .jsx"  
-              
-            if [ $CLIENT_JS_COUNT -gt 0 ] || [ $CLIENT_JSX_COUNT -gt 0 ]; then  
-              # Scan avec liste de fichiers  
-              find client/src -type f \( -name "*.js" -o -name "*.jsx" \) ! -path "*/node_modules/*" ! -path "*/build/*" > /tmp/client-files.txt  
-                
-              if [ -s /tmp/client-files.txt ]; then  
-                echo "  Fichiers trouvés:"  
-                head -5 /tmp/client-files.txt  
-                  
-                cat /tmp/client-files.txt | xargs eslint \  
-                  --config .eslintrc.security.json \  
-                  --format json \  
-                  --output-file sast-eslint-client.json 2>&1 || echo "  ⚠️ Scan terminé avec avertissements"  
-              fi  
-                
-              echo "  ✅ Scan Client terminé"  
-            else  
-              echo "  ⚠️ Aucun fichier JS/JSX trouvé"  
-            fi  
+            cat /tmp/client-files.txt | xargs eslint \  
+              --config .eslintrc.security.json \  
+              --format json \  
+              --output-file sast-eslint-client.json 2>&1 || echo "⚠️ Scan terminé"  
           fi  
             
           # Scanner API  
-          if [ -d "api" ]; then  
-            echo ""  
-            echo "🔍 Scan SAST API..."  
+          echo ""  
+          echo "🔍 Scan SAST API..."  
+          find api/src -type f -name "*.js" ! -path "*/node_modules/*" ! -path "*/coverage/*" > /tmp/api-files.txt  
+            
+          if [ -s /tmp/api-files.txt ]; then  
+            echo "Fichiers trouvés:"  
+            head -5 /tmp/api-files.txt  
               
-            API_JS_COUNT=$(find api -type f -name "*.js" ! -path "*/node_modules/*" ! -path "*/coverage/*" | wc -l)  
-            echo "  Fichiers à scanner: $API_JS_COUNT .js"  
-              
-            if [ $API_JS_COUNT -gt 0 ]; then  
-              find api/src -type f -name "*.js" ! -path "*/node_modules/*" ! -path "*/coverage/*" > /tmp/api-files.txt  
-                
-              if [ -s /tmp/api-files.txt ]; then  
-                echo "  Fichiers trouvés:"  
-                head -5 /tmp/api-files.txt  
-                  
-                cat /tmp/api-files.txt | xargs eslint \  
-                  --config .eslintrc.security.json \  
-                  --format json \  
-                  --output-file sast-eslint-api.json 2>&1 || echo "  ⚠️ Scan terminé avec avertissements"  
-              fi  
-                
-              echo "  ✅ Scan API terminé"  
-            else  
-              echo "  ⚠️ Aucun fichier JS trouvé"  
-            fi  
+            cat /tmp/api-files.txt | xargs eslint \  
+              --config .eslintrc.security.json \  
+              --format json \  
+              --output-file sast-eslint-api.json 2>&1 || echo "⚠️ Scan terminé"  
           fi  
             
           # Vérification finale  
@@ -287,10 +253,9 @@ jobs:
           for file in sast-eslint-client.json sast-eslint-api.json; do  
             if [ -f "$file" ]; then  
               SIZE=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null)  
-              ISSUES=$(cat "$file" | jq '[.[].messages[]] | length' 2>/dev/null || echo "0")  
-              echo "  ✅ $file: $SIZE bytes, $ISSUES problèmes détectés"  
+              echo "✅ $file: $SIZE bytes"  
             else  
-              echo "  ❌ $file: MANQUANT"  
+              echo "❌ $file: MANQUANT"  
               echo '[]' > "$file"  
             fi  
           done  
@@ -299,8 +264,8 @@ jobs:
       - name: Verify Files Before Upload  
         if: always()  
         run: |  
-          echo "🔍 Vérification finale avant upload..."  
-          ls -lh sast-eslint-*.json || echo "❌ Aucun fichier trouvé"  
+          echo "🔍 Vérification finale..."  
+          ls -lh sast-eslint-*.json || echo "❌ Aucun fichier"  
           pwd  
           find . -name "sast-eslint-*.json" -type f  
   
