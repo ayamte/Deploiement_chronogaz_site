@@ -131,49 +131,68 @@ jobs:
           
           cd $GITHUB_WORKSPACE
           
-          # Créer config ESLint SANS extends (pour éviter le bug du plugin)
-          printf '{"env":{"browser":true,"es2021":true,"node":true},"parserOptions":{"ecmaVersion":2021,"sourceType":"module","ecmaFeatures":{"jsx":true}},"plugins":["security","no-secrets"],"rules":{"no-secrets/no-secrets":"warn","security/detect-eval-with-expression":"error","security/detect-non-literal-require":"warn","security/detect-non-literal-regexp":"warn","security/detect-non-literal-fs-filename":"warn","security/detect-unsafe-regex":"error","security/detect-buffer-noassert":"warn","security/detect-child-process":"warn","security/detect-disable-mustache-escape":"warn","security/detect-no-csrf-before-method-override":"warn","security/detect-possible-timing-attacks":"warn","security/detect-pseudoRandomBytes":"warn","security/detect-object-injection":"warn"}}' > .eslintrc.json
+          # Créer config ESLint avec nom unique
+          printf '{"env":{"browser":true,"es2021":true,"node":true},"parserOptions":{"ecmaVersion":2021,"sourceType":"module","ecmaFeatures":{"jsx":true}},"plugins":["security","no-secrets"],"rules":{"no-secrets/no-secrets":"warn","security/detect-eval-with-expression":"error","security/detect-non-literal-require":"warn","security/detect-non-literal-regexp":"warn","security/detect-non-literal-fs-filename":"warn","security/detect-unsafe-regex":"error","security/detect-buffer-noassert":"warn","security/detect-child-process":"warn","security/detect-disable-mustache-escape":"warn","security/detect-no-csrf-before-method-override":"warn","security/detect-possible-timing-attacks":"warn","security/detect-pseudoRandomBytes":"warn","security/detect-object-injection":"warn"}}' > .eslintrc.security.json
           
-          echo "📄 Config générée (sans extends)"
+          echo "📄 Config de sécurité générée"
           
           echo '[]' > sast-eslint-client.json
           echo '[]' > sast-eslint-api.json
           
-          # Scan client
+          # Scan client avec --no-eslintrc pour ignorer les configs existantes
           echo "🔍 Scan client/src..."
           if [ -d "client/src" ]; then
             find client/src -type f \( -name "*.js" -o -name "*.jsx" \) > /tmp/client-files.txt
             if [ -s /tmp/client-files.txt ]; then
               xargs -a /tmp/client-files.txt eslint \
-                --config .eslintrc.json \
+                --no-eslintrc \
+                --config .eslintrc.security.json \
                 --resolve-plugins-relative-to "$TEMP_INSTALL_DIR" \
                 --format json \
                 -o sast-eslint-client.json 2>&1 || true
             fi
           fi
           
-          # Scan api
+          # Scan api avec --no-eslintrc
           echo "🔍 Scan api/src..."
           if [ -d "api/src" ]; then
             find api/src -type f -name "*.js" > /tmp/api-files.txt
             if [ -s /tmp/api-files.txt ]; then
               xargs -a /tmp/api-files.txt eslint \
-                --config .eslintrc.json \
+                --no-eslintrc \
+                --config .eslintrc.security.json \
                 --resolve-plugins-relative-to "$TEMP_INSTALL_DIR" \
                 --format json \
                 -o sast-eslint-api.json 2>&1 || true
             fi
           fi
           
-          # Valider JSON
+          # Valider JSON et afficher résumé
           for f in sast-eslint-client.json sast-eslint-api.json; do
             if ! jq empty "$f" 2>/dev/null; then
+              echo "⚠️  JSON invalide pour $f, réinitialisation"
               echo '[]' > "$f"
+            else
+              ISSUES=$(jq 'length' "$f")
+              echo "✓ $f : $ISSUES fichiers analysés"
             fi
           done
           
-          echo "✅ Rapports générés:"
+          echo ""
+          echo "✅ Rapports SAST générés:"
           ls -lh sast-eslint-*.json
+          
+          # Afficher un résumé des problèmes trouvés
+          echo ""
+          echo "📊 Résumé des vulnérabilités détectées:"
+          for f in sast-eslint-client.json sast-eslint-api.json; do
+            if [ -f "$f" ]; then
+              TOTAL_ISSUES=$(jq '[.[] | .messages | length] | add // 0' "$f")
+              ERROR_COUNT=$(jq '[.[] | .messages[] | select(.severity == 2)] | length' "$f")
+              WARN_COUNT=$(jq '[.[] | .messages[] | select(.severity == 1)] | length' "$f")
+              echo "  $f: $TOTAL_ISSUES issues ($ERROR_COUNT errors, $WARN_COUNT warnings)"
+            fi
+          done
         continue-on-error: true
 
       - name: Upload SAST Reports
@@ -188,5 +207,33 @@ jobs:
           if-no-files-found: warn
 
   # ====================================================================
-  # Job DAST - Ajoutez votre job dast-scan ici
+  # Job DAST - Dynamic Application Security Testing
   # ====================================================================
+  
+  dast-scan:
+    runs-on: ubuntu-latest
+    name: Dynamic Security Analysis (DAST)
+    needs: security-scan
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: DAST - OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.10.0
+        with:
+          target: 'https://votre-app.com'  # Remplacez par votre URL
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
+        continue-on-error: true
+      
+      - name: Upload DAST Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dast-reports
+          path: |
+            report_html.html
+            report_json.json
+          retention-days: 30
+          if-no-files-found: warn
