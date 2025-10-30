@@ -118,6 +118,13 @@ jobs:
         run: |
           set -euo pipefail
           
+          echo "📂 Contenu du workspace:"
+          ls -la
+          echo ""
+          echo "📂 Structure des répertoires:"
+          find . -type d -name "src" 2>/dev/null || echo "Aucun dossier src trouvé"
+          echo ""
+          
           TEMP_INSTALL_DIR="/tmp/eslint-tools"
           mkdir -p "$TEMP_INSTALL_DIR"
           cd "$TEMP_INSTALL_DIR"
@@ -127,6 +134,8 @@ jobs:
           npm install eslint@8.57.0 eslint-plugin-security eslint-plugin-no-secrets --force || true
           
           export PATH="$TEMP_INSTALL_DIR/node_modules/.bin:$PATH"
+          
+          echo "✅ ESLint installé à: $(which eslint)"
           
           cd $GITHUB_WORKSPACE
           
@@ -155,24 +164,41 @@ jobs:
           run_eslint_scan() {
             dir=$1
             out=$2
-            echo "🔍 Lancement ESLint sur $dir"
+            echo ""
+            echo "=========================================="
+            echo "🔍 Scan de: $dir"
+            echo "=========================================="
             
             if [ -d "$dir" ]; then
-              # Trouver tous les fichiers JS/JSX dans le répertoire
-              find "$dir" -type f \( -name "*.js" -o -name "*.jsx" \) > /tmp/files_to_scan.txt
+              echo "✅ Répertoire existe"
+              echo "📁 Contenu de $dir:"
+              ls -la "$dir" || true
+              
+              # Trouver tous les fichiers JS/JSX
+              echo ""
+              echo "🔎 Recherche de fichiers JS/JSX..."
+              find "$dir" -type f \( -name "*.js" -o -name "*.jsx" \) -print > /tmp/files_to_scan.txt
+              
+              echo "📊 Nombre de fichiers trouvés: $(wc -l < /tmp/files_to_scan.txt)"
               
               if [ -s /tmp/files_to_scan.txt ]; then
-                echo "📁 Fichiers trouvés:"
+                echo "📄 Liste des fichiers:"
                 cat /tmp/files_to_scan.txt
                 
-                # Scanner avec ESLint
-                eslint --config .eslintrc.security.json --format json --output-file "$out" $(cat /tmp/files_to_scan.txt) 2>&1 || true
+                echo ""
+                echo "🚀 Lancement d'ESLint..."
+                # Scanner avec ESLint - lire les fichiers ligne par ligne
+                xargs -a /tmp/files_to_scan.txt eslint --config .eslintrc.security.json --format json --output-file "$out" 2>&1 || true
+                
+                echo "📝 Taille du rapport: $(stat -c%s "$out" 2>/dev/null || echo 0) bytes"
+                echo "📄 Contenu du rapport:"
+                head -c 500 "$out" 2>/dev/null || echo "Fichier vide ou introuvable"
               else
-                echo "⚠️ Aucun fichier trouvé dans $dir"
+                echo "⚠️ Aucun fichier JS/JSX trouvé dans $dir"
                 echo '[]' > "$out"
               fi
             else
-              echo "⚠️ Répertoire $dir introuvable"
+              echo "❌ Répertoire $dir introuvable"
               echo '[]' > "$out"
             fi
 
@@ -181,6 +207,8 @@ jobs:
               echo "⚠️ $out n'est pas un JSON valide. Réinitialisation."
               echo '[]' > "$out"
             fi
+            
+            echo "✅ Rapport final: $out ($(stat -c%s "$out" 2>/dev/null || echo 0) bytes)"
           }
 
           run_eslint_scan client/src sast-eslint-client.json
