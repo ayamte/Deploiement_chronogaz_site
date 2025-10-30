@@ -39,7 +39,7 @@ jobs:
         working-directory: ./api
         run: npm ci
       
-            # ===================================
+      # ===================================
       # SCA - Analyse des Dépendances
       # ===================================
 
@@ -105,7 +105,7 @@ jobs:
             dependency-check-reports/
           retention-days: 30
       
-            # ===================================
+      # ===================================
       # SAST - Analyse Statique du Code
       # ===================================
 
@@ -139,12 +139,6 @@ jobs:
         with:
           name: sast-reports
           path: |
-          sast-eslint-client.json  
-          sast-eslint-api.json    
-          
+            sast-eslint-client.json
+            sast-eslint-api.json
           retention-days: 30
-
-
-
-
-
