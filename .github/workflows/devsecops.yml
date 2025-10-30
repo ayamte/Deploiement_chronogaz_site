@@ -134,13 +134,14 @@ jobs:
         continue-on-error: true
 
       - name: Upload SAST Reports
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: sast-reports
-          path: |
-            sast-eslint-*.json
-          retention-days: 30
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sast-reports
+          path: |
+            sast-eslint-client.json  
+            sast-eslint-api.json    
+          retention-days: 30
 
 
 
