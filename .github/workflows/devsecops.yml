@@ -131,21 +131,11 @@ jobs:
           
           cd $GITHUB_WORKSPACE
           
-          # Créer config ESLint
-          cat > .eslintrc.json << 'EOF'
-          {
-            "env": {"browser": true, "es2021": true, "node": true},
-            "parserOptions": {"ecmaVersion": 2021, "sourceType": "module", "ecmaFeatures": {"jsx": true}},
-            "plugins": ["security", "no-secrets"],
-            "extends": ["plugin:security/recommended"],
-            "rules": {
-              "no-secrets/no-secrets": "warn",
-              "security/detect-eval-with-expression": "error",
-              "security/detect-unsafe-regex": "error",
-              "security/detect-non-literal-fs-filename": "warn"
-            }
-          }
-          EOF
+          # Créer config ESLint (en une ligne pour éviter problèmes d'indentation)
+          printf '{"env":{"browser":true,"es2021":true,"node":true},"parserOptions":{"ecmaVersion":2021,"sourceType":"module","ecmaFeatures":{"jsx":true}},"plugins":["security","no-secrets"],"extends":["plugin:security/recommended"],"rules":{"no-secrets/no-secrets":"warn","security/detect-eval-with-expression":"error","security/detect-unsafe-regex":"error","security/detect-non-literal-fs-filename":"warn"}}' > .eslintrc.json
+          
+          echo "📄 Vérification config:"
+          cat .eslintrc.json | jq .
           
           echo '[]' > sast-eslint-client.json
           echo '[]' > sast-eslint-api.json
