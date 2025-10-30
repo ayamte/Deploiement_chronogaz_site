@@ -139,7 +139,8 @@ jobs:
         with:
           name: sast-reports
           path: |
-            sast-eslint-*.json
+            sast-eslint-client.json  
+            sast-eslint-api.json     
           retention-days: 30
 
 
