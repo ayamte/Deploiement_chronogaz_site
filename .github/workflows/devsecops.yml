@@ -134,30 +134,31 @@ jobs:
           npm install eslint@8.57.0 eslint-plugin-security eslint-plugin-no-secrets --force || true
           
           export PATH="$TEMP_INSTALL_DIR/node_modules/.bin:$PATH"
+          export NODE_PATH="$TEMP_INSTALL_DIR/node_modules:$NODE_PATH"
           
           echo "✅ ESLint installé à: $(which eslint)"
+          echo "✅ NODE_PATH configuré: $NODE_PATH"
           
           cd $GITHUB_WORKSPACE
           
-          cat > .eslintrc.security.json <<EOF
-          {
-            "env": {"browser": true, "es2021": true, "node": true},
-            "parserOptions": {
-              "ecmaVersion": 2021,
-              "sourceType": "module",
-              "ecmaFeatures": {"jsx": true}
-            },
-            "plugins": ["security", "no-secrets"],
-            "extends": ["plugin:security/recommended"],
-            "rules": {
-              "no-secrets/no-secrets": "warn",
-              "security/detect-eval-with-expression": "error",
-              "security/detect-unsafe-regex": "error",
-              "security/detect-non-literal-fs-filename": "warn"
-            },
-            "resolvePluginsRelativeTo": "$TEMP_INSTALL_DIR/node_modules"
-          }
-          EOF
+          cat > .eslintrc.security.json <<'EOF'
+{
+  "env": {"browser": true, "es2021": true, "node": true},
+  "parserOptions": {
+    "ecmaVersion": 2021,
+    "sourceType": "module",
+    "ecmaFeatures": {"jsx": true}
+  },
+  "plugins": ["security", "no-secrets"],
+  "extends": ["plugin:security/recommended"],
+  "rules": {
+    "no-secrets/no-secrets": "warn",
+    "security/detect-eval-with-expression": "error",
+    "security/detect-unsafe-regex": "error",
+    "security/detect-non-literal-fs-filename": "warn"
+  }
+}
+EOF
 
           echo '[]' > sast-eslint-client.json
           echo '[]' > sast-eslint-api.json
