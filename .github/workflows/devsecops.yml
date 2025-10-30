@@ -217,17 +217,23 @@ jobs:
           echo '[]' > sast-eslint-client.json  
           echo '[]' > sast-eslint-api.json  
             
-          # Scanner Client - CORRECTION CRITIQUE  
+          # Scanner Client - NOUVELLE APPROCHE SANS XARGS  
           echo ""  
           echo "🔍 Scan SAST Client..."  
-          find client/src -type f \( -name "*.js" -o -name "*.jsx" \) ! -path "*/node_modules/*" > /tmp/client-files.txt  
             
-          if [ -s /tmp/client-files.txt ]; then  
-            echo "Fichiers trouvés:"  
-            head -5 /tmp/client-files.txt  
+          # Créer un tableau bash avec les fichiers  
+          CLIENT_FILES=()  
+          while IFS= read -r file; do  
+            CLIENT_FILES+=("$file")  
+          done < <(find client/src -type f \( -name "*.js" -o -name "*.jsx" \) ! -path "*/node_modules/*" 2>/dev/null)  
+            
+          if [ ${#CLIENT_FILES[@]} -gt 0 ]; then  
+            echo "Fichiers trouvés: ${#CLIENT_FILES[@]}"  
+            echo "Exemples:"  
+            printf '%s\n' "${CLIENT_FILES[@]}" | head -5  
               
-            # ✅ CORRECTION: Utiliser xargs avec -r (ignore si vide) et -d '\n' (délimiteur newline)  
-            cat /tmp/client-files.txt | xargs -r -d '\n' eslint \  
+            # Appeler ESLint directement avec le tableau  
+            eslint "${CLIENT_FILES[@]}" \  
               --config .eslintrc.security.json \  
               --format json \  
               --output-file sast-eslint-client.json 2>&1 || echo "⚠️ Scan terminé"  
@@ -235,17 +241,21 @@ jobs:
             echo "⚠️ Aucun fichier trouvé"  
           fi  
             
-          # Scanner API - CORRECTION CRITIQUE  
+          # Scanner API - NOUVELLE APPROCHE SANS XARGS  
           echo ""  
           echo "🔍 Scan SAST API..."  
-          find api/src -type f -name "*.js" ! -path "*/node_modules/*" ! -path "*/coverage/*" > /tmp/api-files.txt  
             
-          if [ -s /tmp/api-files.txt ]; then  
-            echo "Fichiers trouvés:"  
-            head -5 /tmp/api-files.txt  
+          API_FILES=()  
+          while IFS= read -r file; do  
+            API_FILES+=("$file")  
+          done < <(find api/src -type f -name "*.js" ! -path "*/node_modules/*" ! -path "*/coverage/*" 2>/dev/null)  
+            
+          if [ ${#API_FILES[@]} -gt 0 ]; then  
+            echo "Fichiers trouvés: ${#API_FILES[@]}"  
+            echo "Exemples:"  
+            printf '%s\n' "${API_FILES[@]}" | head -5  
               
-            # ✅ CORRECTION: Utiliser xargs avec -r et -d '\n'  
-            cat /tmp/api-files.txt | xargs -r -d '\n' eslint \  
+            eslint "${API_FILES[@]}" \  
               --config .eslintrc.security.json \  
               --format json \  
               --output-file sast-eslint-api.json 2>&1 || echo "⚠️ Scan terminé"  
