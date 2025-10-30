@@ -141,24 +141,36 @@ jobs:
           
           cd $GITHUB_WORKSPACE
           
-          cat > .eslintrc.security.json << 'ESLINTEOF'
-          {
-            "env": {"browser": true, "es2021": true, "node": true},
-            "parserOptions": {
-              "ecmaVersion": 2021,
-              "sourceType": "module",
-              "ecmaFeatures": {"jsx": true}
-            },
-            "plugins": ["security", "no-secrets"],
-            "extends": ["plugin:security/recommended"],
-            "rules": {
-              "no-secrets/no-secrets": "warn",
-              "security/detect-eval-with-expression": "error",
-              "security/detect-unsafe-regex": "error",
-              "security/detect-non-literal-fs-filename": "warn"
-            }
-          }
-          ESLINTEOF
+          cat > .eslintrc.security.json <<'ESLINTEOF'
+{
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2021,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "plugins": ["security", "no-secrets"],
+  "extends": ["plugin:security/recommended"],
+  "rules": {
+    "no-secrets/no-secrets": "warn",
+    "security/detect-eval-with-expression": "error",
+    "security/detect-unsafe-regex": "error",
+    "security/detect-non-literal-fs-filename": "warn"
+  }
+}
+ESLINTEOF
+          
+          echo "📄 Vérification du fichier de config:"
+          cat .eslintrc.security.json
+          echo ""
+          echo "✅ Validation JSON:"
+          jq . .eslintrc.security.json || echo "❌ JSON invalide!"
 
           echo '[]' > sast-eslint-client.json
           echo '[]' > sast-eslint-api.json
