@@ -1,14 +1,3 @@
-#!/usr/bin/env python3
-"""
-SCA Parser - NPM Audit Analysis
-=================================
-Parses NPM Audit reports (SCA) and normalizes them into a unified format.
-
-Author: DevSecOps Team
-Project: ChronoGaz Security Analysis
-Task: Report Parsing (Task 3)
-"""
-
 import json
 from datetime import datetime
 from pathlib import Path
